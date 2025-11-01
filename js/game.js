@@ -2,7 +2,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const VERSION = "1767";
   const WORD_LEN = 5;
-  const MAX_ROWS = 5;
+  const MAX_ROWS = 15;
   const BOARD_COUNT = 8;
   const VALID_TXT_URL = "assets/valid_words.txt?v=" + VERSION;
 

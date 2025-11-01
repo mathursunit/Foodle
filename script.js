@@ -1,15 +1,11 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v2.3';
+const APP_VERSION = 'v2.4';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
 
-let __lastToast = { text: '', ts: 0 };
 function showToast(message) {
   const container = document.getElementById('toast-container');
-  const now = Date.now();
-  if (message === __lastToast.text && (now - __lastToast.ts) < 800) { return; }
-  __lastToast = { text: message, ts: now };
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.innerText = message;
@@ -27,17 +23,12 @@ let solution = '';
 let currentRow = 0, currentCol = 0;
 const rows = [];
 
-fetch('words.txt')
+fetch('words.txt?v=v2.4')
   .then(r => r.text())
   .then(txt => {
     WORDS = txt.split('\n').map(w => w.trim().toUpperCase()).filter(Boolean);
     startGame();
-  })
-  .catch(e => {
-    console.warn('words.txt fetch failed, using fallback', e);
-    WORDS = ['APPLE','MANGO','BERRY','PIZZA','ALONE','PASTA','BREAD','SALAD','GRAPE','CHILI'];
-    startGame();
-  });
+  }).catch(()=>{ WORDS=['APPLE','MANGO','BERRY','PIZZA','ALONE','PASTA','BREAD','SALAD','GRAPE','CHILI']; startGame(); });
 
 function getDailyIndex() {
   const now = new Date();
@@ -46,12 +37,8 @@ function getDailyIndex() {
   return ((days % WORDS.length) + WORDS.length) % WORDS.length;
 }
 
-let __lastToast = { text: '', ts: 0 };
 function showToast(message) {
   const container = document.getElementById('toast-container');
-  const now = Date.now();
-  if (message === __lastToast.text && (now - __lastToast.ts) < 800) { return; }
-  __lastToast = { text: message, ts: now };
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.textContent = message.toUpperCase();
@@ -66,10 +53,8 @@ function showToast(message) {
 }
 
 function startGame() {
-  initMenu();
-  const vb = document.getElementById('version-badge');
-  if (vb) vb.textContent = 'FIHR – Foodle ' + APP_VERSION;
-
+  const vl = document.getElementById('version-label');
+  if (vl) vl.textContent = 'Build ' + APP_VERSION;
   solution = WORDS[getDailyIndex()];
   document.body.focus();
   document.querySelectorAll('.row').forEach(r => rows.push(Array.from(r.children)));
@@ -146,21 +131,14 @@ function checkGuess() {
       tile.classList.add('flip');
       tile.addEventListener('animationend', () => {
         tile.classList.remove('flip');
-        tile.textContent = letter;
-        tile.classList.remove('correct','present','absent');
         tile.classList.add(state);
-        // inline color to override any stylesheet conflicts
-        if (state === 'correct') { tile.style.background='#8b5cf6'; tile.style.borderColor='#8b5cf6'; tile.style.color='#fff'; }
-        else if (state === 'present') { tile.style.background='#06b6d4'; tile.style.borderColor='#06b6d4'; tile.style.color='#fff'; }
-        else { tile.style.background='#334155'; tile.style.borderColor='#334155'; tile.style.color='#fff'; }
-tile.classList.add(state);
         const keyBtn = findKeyBtn(letter);
         if (state === 'correct') {
-          keyBtn.classList.add('correct'); if (keyBtn) { keyBtn.style.background='#8b5cf6'; keyBtn.style.borderColor='#8b5cf6'; keyBtn.style.color='#fff'; }
+          keyBtn.classList.add('correct');
         } else if (state === 'present' && !keyBtn.classList.contains('correct')) {
-          keyBtn.classList.add('present'); if (keyBtn) { keyBtn.style.background='#06b6d4'; keyBtn.style.borderColor='#06b6d4'; keyBtn.style.color='#fff'; }
+          keyBtn.classList.add('present');
         } else {
-          keyBtn.classList.add('absent'); if (keyBtn) { keyBtn.style.background='#334155'; keyBtn.style.borderColor='#334155'; keyBtn.style.color='#fff'; }
+          keyBtn.classList.add('absent');
         }
       }, { once: true });
     }, i * 300);
@@ -203,53 +181,24 @@ tile.classList.add(state);
   setInterval(updateCountdown, 1000);
 })();
 
-
-function showModal(title, contentHtml){
-  const backdrop = document.createElement('div');
-  backdrop.id = 'modal-backdrop';
-  const modal = document.createElement('div');
-  modal.id = 'modal';
-  modal.innerHTML = `<h3>${title}</h3><div class="content">${contentHtml}</div>
-    <div class="actions"><button class="btn primary" id="modal-ok">OK</button></div>`;
-  backdrop.appendChild(modal);
-  document.body.appendChild(backdrop);
-  document.getElementById('modal-ok').addEventListener('click', ()=> backdrop.remove());
-  backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) backdrop.remove(); });
-}
-function initMenu(){
-  const btn = document.getElementById('menu-btn');
-  const panel = document.getElementById('menu-panel');
-  if(!btn || !panel) return;
-  const close = ()=> panel.classList.remove('open');
-  btn.addEventListener('click', (e)=>{ e.stopPropagation(); panel.classList.toggle('open'); });
-  document.addEventListener('click', close);
-  panel.addEventListener('click', (e)=> e.stopPropagation());
-  panel.querySelectorAll('.menu-item').forEach(mi => {
-    mi.addEventListener('click', ()=> {
-      const action = mi.dataset.action;
-      close();
-      if(action === 'version'){
-        showModal('Version', `<p><strong>FIHR – Foodle</strong><br/>Build ${APP_VERSION}</p>`);
-      } else if(action === 'about'){
-        showModal('About', `<p><strong>FIHR – Foodle</strong> is a personal learning project. It is not affiliated with the NYTimes.</p>`);
-      }
-    });
-  });
-}
-
-
-// Delegated click handler as a safety net
+// Delegated click handler (keyboard + menu)
 function __delegatedClick(e){
   const keyBtn = e.target.closest && e.target.closest('#keyboard .key');
   if (keyBtn){
-    const k = keyBtn.dataset.key || keyBtn.textContent;
-    onKey({ key: k.toUpperCase() });
-    return;
+    const k = (keyBtn.dataset.key || keyBtn.textContent || '').toUpperCase();
+    if (k) onKey({ key: k });
   }
   const menuBtn = e.target.closest && e.target.closest('#menu-btn');
   if (menuBtn){
     const panel = document.getElementById('menu-panel');
     if (panel) panel.classList.toggle('open');
+  }
+  const menuItem = e.target.closest && e.target.closest('#menu-panel .menu-item');
+  if (menuItem){
+    const action = menuItem.dataset.action;
+    const panel = document.getElementById('menu-panel'); if (panel) panel.classList.remove('open');
+    if (action === 'version'){ showModal('Version', `<p><strong>FIHR – Foodle</strong><br/>Build ${APP_VERSION}</p>`); }
+    if (action === 'about'){ showModal('About', `<p><strong>FIHR – Foodle</strong> is a personal learning project.</p>`); }
   }
 }
 document.addEventListener('click', __delegatedClick, true);
