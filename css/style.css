@@ -153,3 +153,7 @@ h1.app-title{ margin: 8px 0 10px; font-weight: 800; text-align: center; }
 #countdown{ pointer-events:none; }
 #toast-container, #toast-container .toast { pointer-events:none; }
 #keyboard{ z-index:25; } /* stays above other content but below modals */
+
+#menu-root{ pointer-events:auto; }
+#menu-panel{ pointer-events:auto; }
+#keyboard{ pointer-events:auto; }

@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v2.2';
+const APP_VERSION = 'v2.3';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -31,6 +31,11 @@ fetch('words.txt')
   .then(r => r.text())
   .then(txt => {
     WORDS = txt.split('\n').map(w => w.trim().toUpperCase()).filter(Boolean);
+    startGame();
+  })
+  .catch(e => {
+    console.warn('words.txt fetch failed, using fallback', e);
+    WORDS = ['APPLE','MANGO','BERRY','PIZZA','ALONE','PASTA','BREAD','SALAD','GRAPE','CHILI'];
     startGame();
   });
 
@@ -232,3 +237,19 @@ function initMenu(){
   });
 }
 
+
+// Delegated click handler as a safety net
+function __delegatedClick(e){
+  const keyBtn = e.target.closest && e.target.closest('#keyboard .key');
+  if (keyBtn){
+    const k = keyBtn.dataset.key || keyBtn.textContent;
+    onKey({ key: k.toUpperCase() });
+    return;
+  }
+  const menuBtn = e.target.closest && e.target.closest('#menu-btn');
+  if (menuBtn){
+    const panel = document.getElementById('menu-panel');
+    if (panel) panel.classList.toggle('open');
+  }
+}
+document.addEventListener('click', __delegatedClick, true);
