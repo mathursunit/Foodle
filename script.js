@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v1.8';
+const APP_VERSION = 'v1.9';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -53,6 +53,7 @@ function showToast(message) {
 }
 
 function startGame() {
+  initMenu();
   const vb = document.getElementById('version-badge');
   if (vb) vb.textContent = 'FIHR – Foodle ' + APP_VERSION;
 
@@ -188,3 +189,38 @@ tile.classList.add(state);
   updateCountdown();
   setInterval(updateCountdown, 1000);
 })();
+
+
+function showModal(title, contentHtml){
+  const backdrop = document.createElement('div');
+  backdrop.id = 'modal-backdrop';
+  const modal = document.createElement('div');
+  modal.id = 'modal';
+  modal.innerHTML = `<h3>${title}</h3><div class="content">${contentHtml}</div>
+    <div class="actions"><button class="btn primary" id="modal-ok">OK</button></div>`;
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+  document.getElementById('modal-ok').addEventListener('click', ()=> backdrop.remove());
+  backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) backdrop.remove(); });
+}
+function initMenu(){
+  const btn = document.getElementById('menu-btn');
+  const panel = document.getElementById('menu-panel');
+  if(!btn || !panel) return;
+  const close = ()=> panel.classList.remove('open');
+  btn.addEventListener('click', (e)=>{ e.stopPropagation(); panel.classList.toggle('open'); });
+  document.addEventListener('click', close);
+  panel.addEventListener('click', (e)=> e.stopPropagation());
+  panel.querySelectorAll('.menu-item').forEach(mi => {
+    mi.addEventListener('click', ()=> {
+      const action = mi.dataset.action;
+      close();
+      if(action === 'version'){
+        showModal('Version', `<p><strong>FIHR – Foodle</strong><br/>Build ${APP_VERSION}</p>`);
+      } else if(action === 'about'){
+        showModal('About', `<p><strong>FIHR – Foodle</strong> is a personal learning project. It is not affiliated with the NYTimes.</p>`);
+      }
+    });
+  });
+}
+
