@@ -47,3 +47,20 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 
 @media (max-width:900px){#boards{grid-template-columns:repeat(2,1fr)}.tile{width:34px;height:34px;font-size:16px}}
 @media (max-width:520px){#boards{grid-template-columns:1fr}.tile{width:34px;height:34px}}
+
+
+/* ==== FIHR – Foodle layout overrides ==== */
+.app-title{ margin:12px auto 8px; font-weight:800; letter-spacing:0.5px; text-align:center; }
+#grid{ display:flex; flex-direction:column; gap:8px; margin:8px 0 120px 0; } /* extra bottom room for fixed keyboard */
+#grid .row{ display:grid; grid-template-columns: repeat(5, 48px); gap:8px; justify-content:center; }
+.tile{ width:48px; height:48px; line-height:48px; border-radius:6px; border:1px solid #d6dadc; text-align:center; font-weight:700; font-size:22px; text-transform:uppercase; background:#fff; }
+@media (max-width: 520px){
+  #grid .row{ grid-template-columns: repeat(5, 40px); gap:6px; }
+  .tile{ width:40px; height:40px; line-height:40px; font-size:18px; }
+}
+/* Ensure keyboard is visible and fixed at bottom */
+#keyboard{ position:fixed; left:50%; transform:translateX(-50%); bottom:10px; width:100%; max-width:740px; padding:8px 8px 12px; background:var(--card); backdrop-filter:saturate(180%) blur(10px); display:flex; flex-direction:column; gap:6px; z-index:10; }
+.krow{ display:flex; gap:6px; justify-content:center; }
+.key{ padding:10px 12px; border-radius:6px; background:#e7ebed; color:#111; min-width:34px; text-align:center; font-weight:700; border:1px solid #d6dadc; }
+.key.wide{ min-width:68px; }
+/* ==== end overrides ==== */
