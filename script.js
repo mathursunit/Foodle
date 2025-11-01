@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v2.7';
+const APP_VERSION = 'v2.8';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -182,16 +182,16 @@ function checkGuess() {
 })();
 
 function showModal(title, contentHtml){
-  const backdrop = document.createElement('div');
-  backdrop.id = 'modal-backdrop';
-  const modal = document.createElement('div');
-  modal.id = 'modal';
+  const old = document.getElementById('modal-backdrop'); if (old) old.remove();
+  const backdrop = document.createElement('div'); backdrop.id = 'modal-backdrop'; backdrop.setAttribute('role','dialog'); backdrop.setAttribute('aria-modal','true');
+  const modal = document.createElement('div'); modal.id = 'modal';
   modal.innerHTML = `<h3>${title}</h3><div class="content">${contentHtml}</div>
-    <div class="actions"><button class="btn primary" id="modal-ok">OK</button></div>`;
-  backdrop.appendChild(modal);
-  document.body.appendChild(backdrop);
-  document.getElementById('modal-ok').addEventListener('click', ()=> backdrop.remove());
-  backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) backdrop.remove(); });
+    <div class="actions"><button class="btn primary" id="modal-ok" autofocus>OK</button></div>`;
+  backdrop.appendChild(modal); document.body.appendChild(backdrop);
+  const close = ()=> backdrop.remove();
+  document.getElementById('modal-ok').addEventListener('click', close);
+  backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) close(); });
+  document.addEventListener('keydown', function escHandler(ev){ if(ev.key==='Escape'){ close(); document.removeEventListener('keydown', escHandler); } });
 }
 function initMenu(){
   const btn = document.getElementById('menu-btn');

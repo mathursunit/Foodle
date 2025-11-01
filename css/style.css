@@ -88,3 +88,15 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 /* Flip animation */
 @keyframes flip { 0%{transform:rotateX(0deg);} 50%{transform:rotateX(90deg);} 100%{transform:rotateX(0deg);} }
 .flip{ animation: flip .6s ease-in-out forwards; }
+
+/* === FIHR v2.8: modal styling === */
+#modal-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.32); z-index:90; display:flex; align-items:center; justify-content:center; padding:16px; }
+#modal{ width:min(92vw, 520px); background:#fff; color:#111; border-radius:14px; border:1px solid #e5e7eb; box-shadow:0 16px 40px rgba(0,0,0,.25); padding:16px 18px; animation: modalIn .16s ease-out; }
+#modal h3{ margin:0 0 8px; font-size:18px; font-weight:800; }
+#modal p{ margin:8px 0; line-height:1.4; }
+#modal .actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
+#modal .btn{ padding:8px 12px; border-radius:8px; border:1px solid #d6dadc; background:#f5f7f9; cursor:pointer; }
+#modal .btn.primary{ background:#8b5cf6; color:#fff; border-color:#8b5cf6; }
+@keyframes modalIn{ from{ opacity:.001; transform:translateY(4px);} to{ opacity:1; transform:translateY(0);} }
+#menu-root{ z-index:60; }
+#toast-container{ z-index:55; }
