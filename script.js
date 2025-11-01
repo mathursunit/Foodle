@@ -1,11 +1,15 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v1.9';
+const APP_VERSION = 'v2.0';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
 
+let __lastToast = { text: '', ts: 0 };
 function showToast(message) {
   const container = document.getElementById('toast-container');
+  const now = Date.now();
+  if (message === __lastToast.text && (now - __lastToast.ts) < 800) { return; }
+  __lastToast = { text: message, ts: now };
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.innerText = message;
@@ -37,8 +41,12 @@ function getDailyIndex() {
   return ((days % WORDS.length) + WORDS.length) % WORDS.length;
 }
 
+let __lastToast = { text: '', ts: 0 };
 function showToast(message) {
   const container = document.getElementById('toast-container');
+  const now = Date.now();
+  if (message === __lastToast.text && (now - __lastToast.ts) < 800) { return; }
+  __lastToast = { text: message, ts: now };
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.textContent = message.toUpperCase();
