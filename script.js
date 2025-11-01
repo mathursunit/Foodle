@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v3.0';
+const APP_VERSION = 'v3.1';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -53,6 +53,7 @@ function showToast(message) {
 }
 
 function startGame() {
+  ensureLegend();
   // Add row numbers 1..5 on first tile
   document.querySelectorAll('#grid .row').forEach((row, idx)=>{
     const first = row.querySelector('.tile');
@@ -83,6 +84,7 @@ function onKey(e) {
 }
 
 function addLetter(letter) {
+  // v3.1: mark first tile as filled to hide row label when typing
   rows[currentRow][currentCol].textContent = letter;
   currentCol++;
 }
@@ -245,3 +247,25 @@ function layoutGrid(){
 }
 window.addEventListener('resize', layoutGrid);
 window.addEventListener('orientationchange', layoutGrid);
+
+function markTileLetterState(tile){
+  if(!tile) return;
+  if(tile.textContent && tile.textContent.trim().length>0){
+    tile.classList.add('has-letter');
+  }else{
+    tile.classList.remove('has-letter');
+  }
+}
+
+function ensureLegend(){
+  const grid = document.getElementById('grid');
+  if(!grid) return;
+  let legend = document.getElementById('legend');
+  if(!legend){
+    legend = document.createElement('div');
+    legend.id = 'legend';
+    legend.className = 'legend';
+    legend.innerHTML = '<span class="chip correct"></span><em>Correct</em> <span class="chip present"></span><em>Present</em> <span class="chip absent"></span><em>Absent</em>';
+    grid.insertAdjacentElement('afterend', legend);
+  }
+}
