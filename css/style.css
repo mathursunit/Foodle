@@ -68,3 +68,27 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 
 /* Make sure tile text stays visible after flip */
 .tile.correct, .tile.present, .tile.absent { color:#fff !important; }
+
+
+/* ---- FIHR: version badge ---- */
+#version-badge{
+  position:fixed;
+  top:8px;
+  right:10px;
+  font-size:12px;
+  padding:4px 8px;
+  border-radius:999px;
+  background:#eef2f5;
+  border:1px solid #d6dadc;
+  color:#111;
+  z-index:20;
+  opacity:0.8;
+  user-select:none;
+}
+/* Make sure tile state colors are unambiguous */
+.tile.correct{ background:#8b5cf6 !important; border-color:#8b5cf6 !important; color:#fff !important; }
+.tile.present{ background:#06b6d4 !important; border-color:#06b6d4 !important; color:#fff !important; }
+.tile.absent{  background:#334155 !important; border-color:#334155 !important; color:#fff !important; }
+.key.correct{ background:#8b5cf6 !important; border-color:#8b5cf6 !important; color:#fff !important; }
+.key.present{ background:#06b6d4 !important; border-color:#06b6d4 !important; color:#fff !important; }
+.key.absent{  background:#334155 !important; border-color:#334155 !important; color:#fff !important; }

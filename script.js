@@ -1,4 +1,5 @@
 // script.js with toast notification and flip animation
+const APP_VERSION = 'v1.7';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -52,6 +53,9 @@ function showToast(message) {
 }
 
 function startGame() {
+  const vb = document.getElementById('version-badge');
+  if (vb) vb.textContent = 'FIHR – Foodle ' + APP_VERSION;
+
   solution = WORDS[getDailyIndex()];
   document.body.focus();
   document.querySelectorAll('.row').forEach(r => rows.push(Array.from(r.children)));
@@ -128,14 +132,21 @@ function checkGuess() {
       tile.classList.add('flip');
       tile.addEventListener('animationend', () => {
         tile.classList.remove('flip');
-        tile.textContent = letter; tile.classList.add(state);
+        tile.textContent = letter;
+        tile.classList.remove('correct','present','absent');
+        tile.classList.add(state);
+        // inline color to override any stylesheet conflicts
+        if (state === 'correct') { tile.style.background='#8b5cf6'; tile.style.borderColor='#8b5cf6'; tile.style.color='#fff'; }
+        else if (state === 'present') { tile.style.background='#06b6d4'; tile.style.borderColor='#06b6d4'; tile.style.color='#fff'; }
+        else { tile.style.background='#334155'; tile.style.borderColor='#334155'; tile.style.color='#fff'; }
+tile.classList.add(state);
         const keyBtn = findKeyBtn(letter);
         if (state === 'correct') {
-          keyBtn.classList.add('correct');
+          keyBtn.classList.add('correct'); if (keyBtn) { keyBtn.style.background='#8b5cf6'; keyBtn.style.borderColor='#8b5cf6'; keyBtn.style.color='#fff'; }
         } else if (state === 'present' && !keyBtn.classList.contains('correct')) {
-          keyBtn.classList.add('present');
+          keyBtn.classList.add('present'); if (keyBtn) { keyBtn.style.background='#06b6d4'; keyBtn.style.borderColor='#06b6d4'; keyBtn.style.color='#fff'; }
         } else {
-          keyBtn.classList.add('absent');
+          keyBtn.classList.add('absent'); if (keyBtn) { keyBtn.style.background='#334155'; keyBtn.style.borderColor='#334155'; keyBtn.style.color='#fff'; }
         }
       }, { once: true });
     }, i * 300);
