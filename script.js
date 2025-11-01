@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v2.4';
+const APP_VERSION = 'v2.5';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -23,7 +23,7 @@ let solution = '';
 let currentRow = 0, currentCol = 0;
 const rows = [];
 
-fetch('words.txt?v=v2.4')
+fetch('words.txt?v=v2.5')
   .then(r => r.text())
   .then(txt => {
     WORDS = txt.split('\n').map(w => w.trim().toUpperCase()).filter(Boolean);
@@ -53,8 +53,8 @@ function showToast(message) {
 }
 
 function startGame() {
-  const vl = document.getElementById('version-label');
-  if (vl) vl.textContent = 'Build ' + APP_VERSION;
+  initMenu();
+  const vl = document.getElementById('version-label'); if (vl) vl.textContent = 'Build ' + APP_VERSION;
   solution = WORDS[getDailyIndex()];
   document.body.focus();
   document.querySelectorAll('.row').forEach(r => rows.push(Array.from(r.children)));
@@ -69,7 +69,7 @@ function startGame() {
 
 function onKey(e) {
   const key = e.key.toUpperCase();
-  if (currentRow >= 5) return;
+  if (currentRow >= 6) return;
   if (key === 'ENTER') return checkGuess();
   if (key === 'BACKSPACE') return deleteLetter();
   if (/^[A-Z]$/.test(key) && currentCol < 5) addLetter(key);
@@ -149,11 +149,11 @@ function checkGuess() {
     if (guess === solution) {
       showToast('Great');
     if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 60 });
-      currentRow = 5;
+      currentRow = 6;
     } else {
       currentRow++;
       currentCol = 0;
-      if (currentRow === 5) {
+      if (currentRow === 6) {
         showToast(`The word was ${solution}`);
       }
     }
@@ -181,7 +181,39 @@ function checkGuess() {
   setInterval(updateCountdown, 1000);
 })();
 
-// Delegated click handler (keyboard + menu)
+function showModal(title, contentHtml){
+  const backdrop = document.createElement('div');
+  backdrop.id = 'modal-backdrop';
+  const modal = document.createElement('div');
+  modal.id = 'modal';
+  modal.innerHTML = `<h3>${title}</h3><div class="content">${contentHtml}</div>
+    <div class="actions"><button class="btn primary" id="modal-ok">OK</button></div>`;
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+  document.getElementById('modal-ok').addEventListener('click', ()=> backdrop.remove());
+  backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) backdrop.remove(); });
+}
+function initMenu(){
+  const btn = document.getElementById('menu-btn');
+  const panel = document.getElementById('menu-panel');
+  if(!btn || !panel) return;
+  const close = ()=> panel.classList.remove('open');
+  btn.addEventListener('click', (e)=>{ e.stopPropagation(); panel.classList.toggle('open'); });
+  document.addEventListener('click', close);
+  panel.addEventListener('click', (e)=> e.stopPropagation());
+  panel.querySelectorAll('.menu-item').forEach(mi => {
+    mi.addEventListener('click', ()=> {
+      const action = mi.dataset.action;
+      close();
+      if(action === 'version'){
+        showModal('Version', `<p><strong>FIHR – Foodle</strong><br/>Build ${APP_VERSION}</p>`);
+      } else if(action === 'about'){
+        showModal('About', `<p><strong>FIHR – Foodle</strong> is a personal learning project.</p>`);
+      }
+    });
+  });
+}
+
 function __delegatedClick(e){
   const keyBtn = e.target.closest && e.target.closest('#keyboard .key');
   if (keyBtn){
@@ -192,13 +224,6 @@ function __delegatedClick(e){
   if (menuBtn){
     const panel = document.getElementById('menu-panel');
     if (panel) panel.classList.toggle('open');
-  }
-  const menuItem = e.target.closest && e.target.closest('#menu-panel .menu-item');
-  if (menuItem){
-    const action = menuItem.dataset.action;
-    const panel = document.getElementById('menu-panel'); if (panel) panel.classList.remove('open');
-    if (action === 'version'){ showModal('Version', `<p><strong>FIHR – Foodle</strong><br/>Build ${APP_VERSION}</p>`); }
-    if (action === 'about'){ showModal('About', `<p><strong>FIHR – Foodle</strong> is a personal learning project.</p>`); }
   }
 }
 document.addEventListener('click', __delegatedClick, true);
