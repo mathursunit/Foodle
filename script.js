@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v2.8';
+const APP_VERSION = 'v2.9';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -23,7 +23,7 @@ let solution = '';
 let currentRow = 0, currentCol = 0;
 const rows = [];
 
-fetch('words.txt?v=v2.7')
+fetch('words.txt?v=v2.9?v=v2.7')
   .then(r => r.text())
   .then(txt => {
     WORDS = txt.split('\n').map(w => w.trim().toUpperCase()).filter(Boolean);
@@ -60,7 +60,7 @@ function startGame() {
   document.querySelectorAll('.row').forEach(r => rows.push(Array.from(r.children)));
   window.addEventListener('keydown', onKey);
   document.querySelectorAll('#keyboard .key').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', () => { btn.classList.add('press'); setTimeout(()=>btn.classList.remove('press'), 140);
       const k = btn.dataset.key || btn.textContent;
       onKey({ key: k });
     });
