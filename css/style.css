@@ -146,3 +146,10 @@ h1.app-title{ margin: 8px 0 10px; font-weight: 800; text-align: center; }
 .toast.show{ opacity:1; transform:translateY(0); }
 /* Slightly tighten grid top margin since disclaimer is gone */
 #grid{ margin-top: 8px; }
+
+
+/* --- FIHR v2.2: interaction fixes and version label --- */
+.subtle-version{ margin:2px 0 8px; text-align:center; color:#6b7280; font-size:12px; }
+#countdown{ pointer-events:none; }
+#toast-container, #toast-container .toast { pointer-events:none; }
+#keyboard{ z-index:25; } /* stays above other content but below modals */
