@@ -64,3 +64,7 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 .key{ padding:10px 12px; border-radius:6px; background:#e7ebed; color:#111; min-width:34px; text-align:center; font-weight:700; border:1px solid #d6dadc; }
 .key.wide{ min-width:68px; }
 /* ==== end overrides ==== */
+
+
+/* Make sure tile text stays visible after flip */
+.tile.correct, .tile.present, .tile.absent { color:#fff !important; }

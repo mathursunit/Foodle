@@ -128,7 +128,7 @@ function checkGuess() {
       tile.classList.add('flip');
       tile.addEventListener('animationend', () => {
         tile.classList.remove('flip');
-        tile.classList.add(state);
+        tile.textContent = letter; tile.classList.add(state);
         const keyBtn = findKeyBtn(letter);
         if (state === 'correct') {
           keyBtn.classList.add('correct');
@@ -146,7 +146,7 @@ function checkGuess() {
     if (guess === solution) {
       showToast('Great');
     if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 60 });
-      currentRow = 6;
+      currentRow = 5;
     } else {
       currentRow++;
       currentCol = 0;
