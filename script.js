@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v2.9';
+const APP_VERSION = 'v3.0';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -53,6 +53,13 @@ function showToast(message) {
 }
 
 function startGame() {
+  // Add row numbers 1..5 on first tile
+  document.querySelectorAll('#grid .row').forEach((row, idx)=>{
+    const first = row.querySelector('.tile');
+    if(first){ first.classList.add('row-label'); first.setAttribute('data-rownum', String(idx+1)); }
+  });
+  layoutGrid();
+  window.setTimeout(layoutGrid, 50);
   initMenu();
   const vl = document.getElementById('version-label'); if (vl) vl.textContent = 'Build ' + APP_VERSION;
   solution = WORDS[getDailyIndex()];
@@ -213,3 +220,28 @@ function initMenu(){
     });
   });
 }
+
+
+// Dynamic grid sizing between banner and keyboard
+function layoutGrid(){
+  try{
+    const banner = document.querySelector('.title-banner');
+    const grid = document.getElementById('grid');
+    const kb = document.getElementById('keyboard');
+    if(!grid || !kb) return;
+    const bannerRect = banner ? banner.getBoundingClientRect() : {bottom:0};
+    const kbRect = kb.getBoundingClientRect();
+    const topY = (banner ? bannerRect.bottom : 0) + window.scrollY;
+    const bottomY = kbRect.top + window.scrollY;
+    let avail = bottomY - topY - 120; // padding for labels/legend
+    // clamp available height
+    avail = Math.max(240, Math.min(avail, 560));
+    const gap = 8;
+    // rows = 5 => total gaps = 4*gap
+    let tile = Math.floor((avail - 4*gap) / 5);
+    tile = Math.max(34, Math.min(tile, 64));
+    document.documentElement.style.setProperty('--tile', tile + 'px');
+  }catch(e){/* ignore */}
+}
+window.addEventListener('resize', layoutGrid);
+window.addEventListener('orientationchange', layoutGrid);

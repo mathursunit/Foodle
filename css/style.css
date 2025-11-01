@@ -120,3 +120,16 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 .legend .chip.present{ background:#06b6d4; border-color:#06b6d4; }
 .legend .chip.absent{ background:#334155; border-color:#334155; }
 .legend em{ font-style:normal; }
+
+
+/* === FIHR v3.0: dynamic grid, smaller banner, row numbers, legend position === */
+:root{ --tile: 48px; --gap: 8px; }
+.title-banner{ width:min(90vw, 360px); }
+/* Grid uses --tile */
+#grid{ display:flex; flex-direction:column; gap:var(--gap); align-items:center; justify-content:flex-start; margin:8px 0 10px; }
+#grid .row{ display:grid; grid-template-columns:repeat(5, var(--tile)); gap:var(--gap); }
+.tile{ width:var(--tile); height:var(--tile); line-height:var(--tile); position:relative; }
+/* Row number on first tile */
+.tile.row-label::before{ content: attr(data-rownum); position:absolute; top:4px; left:6px; font-size:12px; color:#94a3b8; font-weight:700; opacity:.9; pointer-events:none; }
+/* Legend now below grid */
+.legend{ margin:10px 0 90px; font-size:12px; color:#475569; }
