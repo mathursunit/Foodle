@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v3.6';
+const APP_VERSION = 'v3.6.1';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -492,3 +492,19 @@ function initHintLink(){
   });
   forceHintZoneAfterGrid();
 }
+
+
+// v3.6.1 runtime guard: keep hint-zone right after #grid and above #legend
+function placeHintZone(){
+  const grid = document.getElementById('grid');
+  const hz   = document.getElementById('hint-zone');
+  if (!grid || !hz) return;
+  if (hz.parentElement === grid) {
+    grid.after(hz);
+  }
+  const legend = document.getElementById('legend');
+  if (legend && hz.nextElementSibling !== legend) {
+    legend.before(hz);
+  }
+}
+document.addEventListener('DOMContentLoaded', placeHintZone);

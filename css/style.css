@@ -205,3 +205,9 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 @keyframes fadeIn{ from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);} }
 
 /* FIHR Foodle v3.6: no additional CSS; JS placement + globals fix */
+
+/* FIHR Foodle v3.6.1 polish */
+#logo{ margin-bottom:6px; }
+#grid{ margin-top:6px; }
+.hint-row{ animation: fadeIn .25s ease; }
+@keyframes fadeIn{ from{opacity:0; transform: translateY(-4px);} to{opacity:1; transform:translateY(0);}}
