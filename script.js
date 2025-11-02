@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v3.6.4';
+const APP_VERSION = 'v3.6.5';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -557,4 +557,45 @@ function fihrSafeSubmit(){
   } else {
     setBuildTag();
   }
+})();
+
+
+// v3.6.5: input + layout hardening
+(function(){
+  function rows(){ return Array.from(document.querySelectorAll('#grid .row')); }
+  function firstRowWithEmpty(){
+    const rs = rows();
+    for (const r of rs){
+      const t = Array.from(r.querySelectorAll('.tile'));
+      if (t.some(x => !(x.textContent && x.textContent.trim()))) return r;
+    }
+    return rs[rs.length-1] || null;
+  }
+  // Ensure hint-zone is directly after grid (belt-and-suspenders)
+  function placeHintZone(){
+    const grid = document.getElementById('grid');
+    const hz   = document.getElementById('hint-zone');
+    if (grid && hz && hz.parentElement !== grid && grid.nextElementSibling !== hz){
+      grid.insertAdjacentElement('afterend', hz);
+    }
+  }
+  document.addEventListener('DOMContentLoaded', placeHintZone);
+
+  // Wrap addLetter to guard tile targeting
+  var _addLetter = typeof addLetter === 'function' ? addLetter : null;
+  window.addLetter = function(ch){
+    try{
+      const row = firstRowWithEmpty();
+      if (!row){ if (_addLetter) return _addLetter(ch); else return; }
+      const tile = Array.from(row.querySelectorAll('.tile')).find(x => !(x.textContent && x.textContent.trim()));
+      if (!tile){ if (_addLetter) return _addLetter(ch); else return; }
+      // If original addLetter exists and expects to set state, call it first then sync UI
+      if (_addLetter) _addLetter(ch);
+      // If UI didn't update, set directly
+      if (!tile.textContent || !tile.textContent.trim()){
+        tile.textContent = String(ch).toUpperCase();
+        tile.classList.add('filled');
+      }
+    }catch(e){ if (_addLetter) _addLetter(ch); }
+  };
 })();

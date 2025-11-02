@@ -214,3 +214,10 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 
 /* Build tag style */
 .build-tag{ margin:6px 0 10px; text-align:center; color:#6b7280; font-size:12px; }
+
+
+/* === FIHR Foodle v3.6.5: grid hardening === */
+#grid{ display:flex; flex-direction:column; align-items:center; gap:12px; }
+#grid .row{ display:flex; justify-content:center; gap:12px; }
+#grid .tile{ display:flex; align-items:center; justify-content:center; }
+#hint-zone{ display:flex; flex-direction:column; align-items:center; gap:8px; margin:8px 0 56px; }
