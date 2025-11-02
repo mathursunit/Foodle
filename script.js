@@ -683,3 +683,97 @@ function fihrSafeSubmit(){
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
+
+
+/* FIHR v3.7.2 hints */
+(function(){ 
+  const APP_VERSION_HINTS = 'v3.7.2';
+
+  function setBuildTag372(){ 
+    const el = document.getElementById('version-label'); 
+    if (el && !el.textContent.includes('v3.7.2')) el.textContent = 'Build v3.7.2'; 
+  }
+
+  async function loadHintsMap(){
+    if (window.HINTS_MAP) return window.HINTS_MAP;
+    try{ 
+      const res = await fetch('assets/fihr_food_words_v1.3.csv', { cache:'no-store' });
+      if(!res.ok) throw new Error('CSV not found');
+      const text = await res.text();
+      const map = new Map();
+      text.split(/\r?\n/).forEach(line => {
+        const trimmed = line.trim();
+        if(!trimmed || trimmed.startsWith('#')) return;
+        const firstComma = trimmed.indexOf(',');
+        if (firstComma === -1) return;
+        const w = trimmed.slice(0, firstComma).trim();
+        const hint = trimmed.slice(firstComma+1).trim();
+        if (w && hint && w.length === 5) map.set(w.toUpperCase(), hint);
+      });
+      window.HINTS_MAP = map;
+      return map;
+    }catch(e){
+      console.warn('Hints load failed:', e);
+      window.HINTS_MAP = new Map();
+      return window.HINTS_MAP;
+    }
+  }
+
+  async function pickDailyWordFromHints(){
+    const H = await loadHintsMap();
+    const pool = Array.from(H.keys());
+    if (!pool.length) return window.DAILY_WORD || window.CURRENT_ANSWER || 'APPLE';
+    const dayIndex = Math.floor(Date.now() / 86400000);
+    return pool[dayIndex % pool.length];
+  }
+
+  async function ensureDailyWordHasHint(){
+    const H = await loadHintsMap();
+    let w = (window.DAILY_WORD || window.CURRENT_ANSWER || '').toUpperCase();
+    if (!w || !H.has(w)) {
+      w = await pickDailyWordFromHints();
+      window.DAILY_WORD = w;
+      window.CURRENT_ANSWER = w;
+    }
+  }
+
+  function placeHintBanner(){
+    const grid = document.getElementById('grid');
+    const banner = document.getElementById('hint-banner') || document.getElementById('hint-zone');
+    const logoArea = document.querySelector('#logo, .logo-wrap') || grid?.parentElement;
+    if (grid && banner && logoArea && banner.previousElementSibling !== logoArea) {
+      logoArea.insertAdjacentElement('afterend', banner);
+    }
+  }
+
+  async function showHint372(){
+    await ensureDailyWordHasHint();
+    const map = await loadHintsMap();
+    const word = (window.DAILY_WORD || window.CURRENT_ANSWER || '').toUpperCase();
+    const hint = map.get(word);
+    const banner = document.getElementById('hint-banner') || document.getElementById('hint-zone');
+    if (banner){
+      banner.textContent = hint || 'No hint available for this answer.';
+      banner.style.display = 'block';
+    }
+  }
+  window.__foodleShowHint = showHint372; // expose for existing button handlers
+
+  function hookHintButton(){
+    const btn = document.getElementById('get-hint-btn') || document.querySelector('.hint-btn,[data-action="hint"]');
+    if (btn && !btn.__wired){
+      btn.addEventListener('click', (e)=>{ e.preventDefault(); showHint372(); });
+      btn.__wired = true;
+    }
+  }
+
+  async function boot372(){
+    setBuildTag372();
+    placeHintBanner();
+    hookHintButton();
+    await ensureDailyWordHasHint();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot372);
+  else boot372();
+})();
