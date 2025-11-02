@@ -599,3 +599,61 @@ function fihrSafeSubmit(){
     }catch(e){ if (_addLetter) _addLetter(ch); }
   };
 })();
+
+
+// === FIHR Foodle v3.7: grid auto-heal + safe input + hint placement + badge ===
+(function() {
+  const APP_VERSION = 'v3.7';
+  function setBuildTag() {
+    const el = document.getElementById('version-label');
+    if (el) el.textContent = 'Build ' + APP_VERSION;
+  }
+  function healGrid() {
+    const grid = document.getElementById('grid');
+    if (!grid) return;
+    const hasRow = grid.querySelector('.row');
+    const tiles = Array.from(grid.querySelectorAll('.tile'));
+    if (!hasRow && tiles.length === 25 && grid.children.length === tiles.length) {
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < 25; i += 5) {
+        const row = document.createElement('div');
+        row.className = 'row';
+        for (let j = i; j < i + 5; j++) row.appendChild(tiles[j]);
+        frag.appendChild(row);
+      }
+      while (grid.firstChild) grid.removeChild(grid.firstChild);
+      grid.appendChild(frag);
+    }
+  }
+  function placeHintZone() {
+    const grid = document.getElementById('grid');
+    const hz = document.getElementById('hint-zone');
+    if (grid && hz && hz.parentElement !== grid && grid.nextElementSibling !== hz) {
+      grid.insertAdjacentElement('afterend', hz);
+    }
+  }
+  function rows() { return Array.from(document.querySelectorAll('#grid .row')); }
+  function firstRowWithEmpty() {
+    const rs = rows();
+    for (const r of rs) {
+      const t = Array.from(r.querySelectorAll('.tile'));
+      if (t.some(x => !(x.textContent && x.textContent.trim()))) return r;
+    }
+    return rs[rs.length - 1] || null;
+  }
+  const _addLetter = (typeof addLetter === 'function') ? addLetter : null;
+  window.addLetter = function(ch) {
+    try {
+      const row = firstRowWithEmpty();
+      const tile = row && Array.from(row.querySelectorAll('.tile')).find(x => !(x.textContent && x.textContent.trim()));
+      if (_addLetter) _addLetter(ch);
+      if (tile && !(tile.textContent && tile.textContent.trim())) {
+        tile.textContent = String(ch).toUpperCase();
+        tile.classList.add('filled');
+      }
+    } catch (e) { if (_addLetter) _addLetter(ch); }
+  };
+  function boot() { setBuildTag(); healGrid(); placeHintZone(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();

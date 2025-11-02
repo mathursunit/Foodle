@@ -221,3 +221,11 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 #grid .row{ display:flex; justify-content:center; gap:12px; }
 #grid .tile{ display:flex; align-items:center; justify-content:center; }
 #hint-zone{ display:flex; flex-direction:column; align-items:center; gap:8px; margin:8px 0 56px; }
+
+
+/* === FIHR Foodle v3.7: strong 5x5 grid + spacing === */
+#grid { display:flex; flex-direction:column; align-items:center; gap:12px; }
+#grid > .row, #grid > .r, #grid > .row-container { display:grid; grid-template-columns:repeat(5, minmax(36px, 56px)); gap:12px; }
+#grid .tile { display:flex; align-items:center; justify-content:center; min-width:36px; min-height:36px; }
+#hint-zone { display:flex; flex-direction:column; align-items:center; gap:8px; margin:8px 0 56px; }
+.build-tag { margin:6px 0 10px; text-align:center; color:#6b7280; font-size:12px; }
