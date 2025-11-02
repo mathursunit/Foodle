@@ -600,180 +600,21 @@ function fihrSafeSubmit(){
   };
 })();
 
-
-// === FIHR Foodle v3.7.1: ensure 5x5 grid + safe input + hint placement + badge ===
-(function(){ 
-  const APP_VERSION = 'v3.7.1';
-
-  function setBuildTag(){ const el = document.getElementById('version-label'); if (el) el.textContent = 'Build ' + APP_VERSION; }
-
-  // Always construct a 5x5 grid; reuse first row's cells if present
-  function ensureFiveByFive(){
-    const grid = document.getElementById('grid');
-    if (!grid) return;
-    const rows = Array.from(grid.querySelectorAll(':scope > .row'));
-    if (rows.length === 5 && rows.every(r => r.children.length === 5)) return;
-
-    // Source cells from first row if exists or from first 5 children
-    let baseCells = [];
-    if (rows.length) baseCells = Array.from(rows[0].children).slice(0,5);
-    else baseCells = Array.from(grid.children).slice(0,5);
-
-    const frag = document.createDocumentFragment();
-    for (let r = 0; r < 5; r++) {
-      const row = document.createElement('div');
-      row.className = 'row';
-      for (let c = 0; c < 5; c++) {
-        let cell = (r === 0 && baseCells[c]) ? baseCells[c] : document.createElement('div');
-        cell.className = 'tile';
-        cell.textContent = '';
-        row.appendChild(cell);
-      }
-      frag.appendChild(row);
-    }
-    while (grid.firstChild) grid.removeChild(grid.firstChild);
-    grid.appendChild(frag);
-  }
-
-  // Support for pages that accidentally dump 25 tiles directly under grid
-  function autoHealWrap(){
-    const grid = document.getElementById('grid');
-    if (!grid) return;
-    const hasRow = grid.querySelector(':scope > .row');
-    const kids = Array.from(grid.children);
-    if (!hasRow && kids.length === 25){
-      const frag = document.createDocumentFragment();
-      for (let i=0;i<25;i+=5){
-        const row = document.createElement('div'); row.className='row';
-        kids.slice(i,i+5).forEach(k=>{k.classList.add('tile'); row.appendChild(k);});
-        frag.appendChild(row);
-      }
-      grid.replaceChildren(frag);
-    }
-  }
-
-  function placeHintZone(){
-    const grid = document.getElementById('grid');
-    const hz = document.getElementById('hint-zone');
-    if (grid && hz && hz.parentElement !== grid && grid.nextElementSibling !== hz) grid.insertAdjacentElement('afterend', hz);
-  }
-
-  function rows(){ return Array.from(document.querySelectorAll('#grid .row')); }
-  function firstRowWithEmpty(){
-    const rs = rows();
-    for (const r of rs){
-      const t = Array.from(r.querySelectorAll('.tile'));
-      if (t.some(x => !(x.textContent && x.textContent.trim()))) return r;
-    }
-    return rs[rs.length-1] || null;
-  }
-
-  // Guard addLetter so UI never targets undefined tile
-  const _addLetter = (typeof addLetter === 'function') ? addLetter : null;
-  window.addLetter = function(ch){
-    try{
-      const row = firstRowWithEmpty();
-      const tile = row && Array.from(row.querySelectorAll('.tile')).find(x => !(x.textContent && x.textContent.trim()));
-      if (_addLetter) _addLetter(ch);
-      if (tile && !(tile.textContent && tile.textContent.trim())){ tile.textContent = String(ch).toUpperCase(); tile.classList.add('filled'); }
-    }catch(e){ if (_addLetter) _addLetter(ch); }
-  };
-
-  function boot(){ setBuildTag(); autoHealWrap(); ensureFiveByFive(); placeHintZone(); }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
-})();
-
-
 /* FIHR v3.7.2 hints */
-(function(){ 
-  const APP_VERSION_HINTS = 'v3.7.2';
-
-  function setBuildTag372(){ 
-    const el = document.getElementById('version-label'); 
-    if (el && !el.textContent.includes('v3.7.2')) el.textContent = 'Build v3.7.2'; 
-  }
-
-  async function loadHintsMap(){
-    if (window.HINTS_MAP) return window.HINTS_MAP;
-    try{ 
-      const res = await fetch('assets/fihr_food_words_v1.3.csv', { cache:'no-store' });
-      if(!res.ok) throw new Error('CSV not found');
-      const text = await res.text();
-      const map = new Map();
-      text.split(/\r?\n/).forEach(line => {
-        const trimmed = line.trim();
-        if(!trimmed || trimmed.startsWith('#')) return;
-        const firstComma = trimmed.indexOf(',');
-        if (firstComma === -1) return;
-        const w = trimmed.slice(0, firstComma).trim();
-        const hint = trimmed.slice(firstComma+1).trim();
-        if (w && hint && w.length === 5) map.set(w.toUpperCase(), hint);
-      });
-      window.HINTS_MAP = map;
-      return map;
-    }catch(e){
-      console.warn('Hints load failed:', e);
-      window.HINTS_MAP = new Map();
-      return window.HINTS_MAP;
-    }
-  }
-
-  async function pickDailyWordFromHints(){
-    const H = await loadHintsMap();
-    const pool = Array.from(H.keys());
-    if (!pool.length) return window.DAILY_WORD || window.CURRENT_ANSWER || 'APPLE';
-    const dayIndex = Math.floor(Date.now() / 86400000);
-    return pool[dayIndex % pool.length];
-  }
-
-  async function ensureDailyWordHasHint(){
-    const H = await loadHintsMap();
-    let w = (window.DAILY_WORD || window.CURRENT_ANSWER || '').toUpperCase();
-    if (!w || !H.has(w)) {
-      w = await pickDailyWordFromHints();
-      window.DAILY_WORD = w;
-      window.CURRENT_ANSWER = w;
-    }
-  }
-
-  function placeHintBanner(){
-    const grid = document.getElementById('grid');
-    const banner = document.getElementById('hint-banner') || document.getElementById('hint-zone');
-    const logoArea = document.querySelector('#logo, .logo-wrap') || grid?.parentElement;
-    if (grid && banner && logoArea && banner.previousElementSibling !== logoArea) {
-      logoArea.insertAdjacentElement('afterend', banner);
-    }
-  }
-
-  async function showHint372(){
-    await ensureDailyWordHasHint();
-    const map = await loadHintsMap();
-    const word = (window.DAILY_WORD || window.CURRENT_ANSWER || '').toUpperCase();
-    const hint = map.get(word);
-    const banner = document.getElementById('hint-banner') || document.getElementById('hint-zone');
-    if (banner){
-      banner.textContent = hint || 'No hint available for this answer.';
-      banner.style.display = 'block';
-    }
-  }
-  window.__foodleShowHint = showHint372; // expose for existing button handlers
-
-  function hookHintButton(){
-    const btn = document.getElementById('get-hint-btn') || document.querySelector('.hint-btn,[data-action="hint"]');
-    if (btn && !btn.__wired){
-      btn.addEventListener('click', (e)=>{ e.preventDefault(); showHint372(); });
-      btn.__wired = true;
-    }
-  }
-
-  async function boot372(){
-    setBuildTag372();
-    placeHintBanner();
-    hookHintButton();
-    await ensureDailyWordHasHint();
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot372);
-  else boot372();
+(function(){
+  const APP_VERSION_HINTS = 'v3.7.3';
+  function setBuildTag372(){ const el = document.getElementById('version-label'); if (el && !el.textContent.includes('v3.7.3')) el.textContent = 'Build v3.7.3'; }
+  async function loadHintsMap(){ if (window.HINTS_MAP) return window.HINTS_MAP; try{ const res = await fetch('assets/fihr_food_words_v1.3.csv', { cache:'no-store' }); if(!res.ok) throw new Error('CSV not found'); const text = await res.text(); const map = new Map(); text.split(/\r?\n/).forEach(line => { const trimmed = line.trim(); if(!trimmed || trimmed.startsWith('#')) return; const firstComma = trimmed.indexOf(','); if (firstComma === -1) return; const w = trimmed.slice(0, firstComma).trim(); const hint = trimmed.slice(firstComma+1).trim(); if (w && hint && w.length == 5) map.set(w.toUpperCase(), hint); }); window.HINTS_MAP = map; return map; }catch(e){ console.warn('Hints load failed:', e); window.HINTS_MAP = new Map(); return window.HINTS_MAP; } }
+  async function pickDailyWordFromHints(){ const H = await loadHintsMap(); const pool = Array.from(H.keys()); if (!pool.length) return window.DAILY_WORD || window.CURRENT_ANSWER || 'APPLE'; const dayIndex = Math.floor(Date.now() / 86400000); return pool[dayIndex % pool.length]; }
+  async function ensureDailyWordHasHint(){ const H = await loadHintsMap(); let w = (window.DAILY_WORD || window.CURRENT_ANSWER || '').toUpperCase(); if (!w || !H.has(w)) { w = await pickDailyWordFromHints(); window.DAILY_WORD = w; window.CURRENT_ANSWER = w; } }
+  function placeHintBanner(){ const grid = document.getElementById('grid'); const banner = document.getElementById('hint-banner') || document.getElementById('hint-zone'); const logoArea = document.querySelector('#logo, .logo-wrap') || grid?.parentElement; if (grid && banner && logoArea && banner.previousElementSibling !== logoArea) { logoArea.insertAdjacentElement('afterend', banner); } }
+  async function showHint372(){ await ensureDailyWordHasHint(); const map = await loadHintsMap(); const word = (window.DAILY_WORD || window.CURRENT_ANSWER || '').toUpperCase(); const hint = map.get(word); const banner = document.getElementById('hint-banner') || document.getElementById('hint-zone'); if (banner){ banner.textContent = hint || 'No hint available for this answer.'; banner.style.display = 'block'; } }
+  window.__foodleShowHint = showHint372; function hookHintButton(){ const btn = document.getElementById('get-hint-btn') || document.querySelector('.hint-btn,[data-action="hint"]'); if (btn && !btn.__wired){ btn.addEventListener('click', (e)=>{ e.preventDefault(); showHint372(); }); btn.__wired = true; } }
+  async function boot372(){ setBuildTag372(); placeHintBanner(); hookHintButton(); await ensureDailyWordHasHint(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot372); else boot372();
 })();
+
+/* === FIHR Foodle v3.7.3: single-boot grid normalizer to prevent duplicate/stray rows === */
+(function(){ const APPV='v3.7.3'; function setBuildTag(){ const el=document.getElementById('version-label'); if(el) el.textContent='Build ' + APPV; }
+function normalizeGrid(){ const grid=document.getElementById('grid'); if(!grid) return; let rows=Array.from(grid.querySelectorAll(':scope > .row')); if(rows.length>5) rows.slice(5).forEach(r=>r.remove()); if(rows.length===5 && rows.every(r=>r.children.length===5)) return; const direct=Array.from(grid.children); let cells=[]; direct.forEach(n=>{ if(n.classList && n.classList.contains('row')) cells.push(...n.children); else cells.push(n); }); while(cells.length<25){ const d=document.createElement('div'); d.className='tile'; cells.push(d); } cells=cells.slice(0,25); const frag=document.createDocumentFragment(); for(let i=0;i<25;i+=5){ const row=document.createElement('div'); row.className='row'; for(let j=i;j<i+5;j++){ const t=cells[j]; t.className='tile'; t.textContent=''; row.appendChild(t);} frag.appendChild(row);} grid.replaceChildren(frag);} 
+function boot(){ setBuildTag(); normalizeGrid(); } if(!window.__fihrGridBooted){ window.__fihrGridBooted=true; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot); else boot(); }})();
