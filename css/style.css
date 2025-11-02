@@ -203,3 +203,5 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 .hint-link[disabled]{ opacity:.5; cursor:not-allowed; }
 #inline-hint{ display:none; text-align:center; max-width:560px; padding:10px 14px; border-radius:14px; background:rgba(255,255,255,.7); border:1px solid #e5e7eb; backdrop-filter:blur(6px); color:#374151; font-style:italic; box-shadow:0 8px 24px rgba(0,0,0,.06); animation: fadeIn .24s ease; }
 @keyframes fadeIn{ from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);} }
+
+/* FIHR Foodle v3.6: no additional CSS; JS placement + globals fix */

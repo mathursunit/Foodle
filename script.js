@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v3.5';
+const APP_VERSION = 'v3.6';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -274,9 +274,6 @@ function ensureLegend(){
 
 
 // v3.2 inline hint system
-let HINTS_MAP = new Map();
-let HINT_USED = false;
-
 async function loadHints(){
   try{
     const res = await fetch('assets/words_with_hints.csv?v=' + (typeof APP_VERSION!=='undefined'?APP_VERSION:'v3.2'));
@@ -338,8 +335,8 @@ function initHintLink(){
 
 
 // v3.3 inline hint (visible button variant)
-if (typeof HINTS_MAP === 'undefined') { var HINTS_MAP = new Map(); }
-if (typeof HINT_USED === 'undefined') { var HINT_USED = false; }
+if (typeof HINTS_MAP === 'undefined') { }
+if (typeof HINT_USED === 'undefined') { }
 
 async function loadHints(){
   try{
@@ -410,4 +407,88 @@ function initHintLink(){
     if (HINT_USED) return;
     confirmHint('Using a hint will leave you only one attempt. Proceed?', ()=> showInlineHint());
   });
+}
+
+
+// === FIHR Foodle v3.6: unified hint globals + placement fix ===
+window.FIHR = window.FIHR || {};
+FIHR.hintsMap = FIHR.hintsMap || new Map();
+FIHR.hintUsed = FIHR.hintUsed || false;
+
+async function loadHints(){
+  try{
+    const res = await fetch('assets/words_with_hints.csv?v=' + (typeof APP_VERSION!=='undefined'?APP_VERSION:'v3.6'));
+    const txt = await res.text();
+    const lines = txt.trim().split(/\r?\n/).slice(1);
+    for(const line of lines){
+      const idx = line.indexOf(',');
+      if(idx>0){
+        const w = line.slice(0, idx).trim().toUpperCase();
+        const h = line.slice(idx+1).trim().replace(/^"|"$/g,'');
+        if(/^[A-Z]{5}$/.test(w)) FIHR.hintsMap.set(w, h);
+      }
+    }
+  }catch(e){ console.warn('Hint CSV load failed', e); }
+}
+
+function forceHintZoneAfterGrid(){
+  const grid = document.getElementById('grid');
+  const hz = document.getElementById('hint-zone');
+  if (grid && hz && hz.previousElementSibling !== grid) {
+    grid.insertAdjacentElement('afterend', hz);
+  }
+}
+
+function confirmHint(message, onYes){
+  if (typeof showModal === 'function'){
+    const content = `<p style="margin-bottom:12px">${message}</p>
+      <div style="display:flex; gap:8px; justify-content:flex-end">
+        <button class="btn" id="cf-no">Cancel</button>
+        <button class="btn primary" id="cf-yes">Yes</button>
+      </div>`;
+    showModal('Use hint?', content);
+    const root = document.getElementById('modal-backdrop')||document;
+    const noBtn = root.querySelector('#cf-no'); const yesBtn = root.querySelector('#cf-yes');
+    if(noBtn) noBtn.addEventListener('click', ()=> { const bd=document.getElementById('modal-backdrop'); if(bd) bd.remove(); });
+    if(yesBtn) yesBtn.addEventListener('click', ()=> { const bd=document.getElementById('modal-backdrop'); if(bd) bd.remove(); onYes&&onYes(); });
+  }else{ if (confirm(message)) onYes&&onYes(); }
+}
+
+function applyHintPenalty(){
+  if (FIHR.hintUsed) return;
+  FIHR.hintUsed = true;
+  const hintBtn = document.getElementById('hint-link'); if (hintBtn) hintBtn.disabled = true;
+  const grid = document.getElementById('grid'); if (!grid) return;
+  const rows = Array.from(grid.querySelectorAll('.row'));
+  const total = rows.length;
+  let cr = (typeof currentRow !== 'undefined') ? currentRow
+         : (typeof rowIndex !== 'undefined') ? rowIndex
+         : 0;
+  for(let r = cr; r < total - 1; r++){
+    const tiles = rows[r].querySelectorAll('.tile');
+    tiles.forEach(t => { t.textContent = 'X'; t.classList.add('blocked'); });
+  }
+  if (typeof currentRow !== 'undefined') currentRow = total - 1;
+  if (typeof rowIndex !== 'undefined') rowIndex = total - 1;
+}
+
+function showInlineHint(){
+  const word =
+    (typeof solution !== 'undefined' && solution) ? String(solution).toUpperCase() :
+    (typeof answer   !== 'undefined' && answer)   ? String(answer).toUpperCase()   :
+    (typeof target   !== 'undefined' && target)   ? String(target).toUpperCase()   : null;
+  const hintText = (word && FIHR.hintsMap.get(word)) || 'No hint available for this answer.';
+  const el = document.getElementById('inline-hint');
+  if (el){ el.textContent = hintText; el.style.display = 'block'; }
+  applyHintPenalty();
+}
+
+function initHintLink(){
+  const btn = document.getElementById('hint-link');
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    if (FIHR.hintUsed) return;
+    confirmHint('Using a hint will leave you only one attempt. Proceed?', ()=> showInlineHint());
+  });
+  forceHintZoneAfterGrid();
 }
