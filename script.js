@@ -640,3 +640,27 @@ function fihrSafeSubmit(){
     else boot();
   }
 })();
+
+
+/* === FIHR Foodle v3.7.5: bottom-right watermark & strong version enforcement === */
+(function(){
+  const BUILD = 'v3.7.5';
+  function applyText(el) { if (el) el.textContent = 'Build ' + BUILD; }
+  function ensureNode() {
+    let el = document.getElementById('version-label');
+    if (!el) { el = document.createElement('div'); el.id='version-label'; el.className='build-tag'; document.body.appendChild(el); }
+    if (!el.classList.contains('build-tag')) el.classList.add('build-tag');
+    applyText(el);
+    return el;
+  }
+  function boot() {
+    const el = ensureNode();
+    // Mutation observer to prevent other scripts from overwriting
+    const mo = new MutationObserver(() => { if (!el.textContent.includes(BUILD)) applyText(el); });
+    mo.observe(el, { characterData: true, childList: true, subtree: true });
+  }
+  if (!window.__fihrV375Booted) { window.__fihrV375Booted = true;
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+    else boot();
+  }
+})();
