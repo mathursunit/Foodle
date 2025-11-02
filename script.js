@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v3.6.2';
+const APP_VERSION = 'v3.6.4';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -544,3 +544,17 @@ function fihrSafeSubmit(){
   const rowEl = fihrGetRowEl(); if (!rowEl) return;
   // Leave existing submit/validate logic intact; this just prevents crashes
 }
+
+
+// v3.6.4: force version badge to match APP_VERSION at runtime
+(function(){
+  function setBuildTag(){
+    var el = document.getElementById('version-label');
+    if (el) el.textContent = 'Build ' + (typeof APP_VERSION!=='undefined' ? APP_VERSION : '');
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setBuildTag);
+  } else {
+    setBuildTag();
+  }
+})();

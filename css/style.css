@@ -211,3 +211,6 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 #grid{ margin-top:6px; }
 .hint-row{ animation: fadeIn .25s ease; }
 @keyframes fadeIn{ from{opacity:0; transform: translateY(-4px);} to{opacity:1; transform:translateY(0);}}
+
+/* Build tag style */
+.build-tag{ margin:6px 0 10px; text-align:center; color:#6b7280; font-size:12px; }
