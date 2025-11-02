@@ -601,59 +601,85 @@ function fihrSafeSubmit(){
 })();
 
 
-// === FIHR Foodle v3.7: grid auto-heal + safe input + hint placement + badge ===
-(function() {
-  const APP_VERSION = 'v3.7';
-  function setBuildTag() {
-    const el = document.getElementById('version-label');
-    if (el) el.textContent = 'Build ' + APP_VERSION;
-  }
-  function healGrid() {
+// === FIHR Foodle v3.7.1: ensure 5x5 grid + safe input + hint placement + badge ===
+(function(){ 
+  const APP_VERSION = 'v3.7.1';
+
+  function setBuildTag(){ const el = document.getElementById('version-label'); if (el) el.textContent = 'Build ' + APP_VERSION; }
+
+  // Always construct a 5x5 grid; reuse first row's cells if present
+  function ensureFiveByFive(){
     const grid = document.getElementById('grid');
     if (!grid) return;
-    const hasRow = grid.querySelector('.row');
-    const tiles = Array.from(grid.querySelectorAll('.tile'));
-    if (!hasRow && tiles.length === 25 && grid.children.length === tiles.length) {
+    const rows = Array.from(grid.querySelectorAll(':scope > .row'));
+    if (rows.length === 5 && rows.every(r => r.children.length === 5)) return;
+
+    // Source cells from first row if exists or from first 5 children
+    let baseCells = [];
+    if (rows.length) baseCells = Array.from(rows[0].children).slice(0,5);
+    else baseCells = Array.from(grid.children).slice(0,5);
+
+    const frag = document.createDocumentFragment();
+    for (let r = 0; r < 5; r++) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      for (let c = 0; c < 5; c++) {
+        let cell = (r === 0 && baseCells[c]) ? baseCells[c] : document.createElement('div');
+        cell.className = 'tile';
+        cell.textContent = '';
+        row.appendChild(cell);
+      }
+      frag.appendChild(row);
+    }
+    while (grid.firstChild) grid.removeChild(grid.firstChild);
+    grid.appendChild(frag);
+  }
+
+  // Support for pages that accidentally dump 25 tiles directly under grid
+  function autoHealWrap(){
+    const grid = document.getElementById('grid');
+    if (!grid) return;
+    const hasRow = grid.querySelector(':scope > .row');
+    const kids = Array.from(grid.children);
+    if (!hasRow && kids.length === 25){
       const frag = document.createDocumentFragment();
-      for (let i = 0; i < 25; i += 5) {
-        const row = document.createElement('div');
-        row.className = 'row';
-        for (let j = i; j < i + 5; j++) row.appendChild(tiles[j]);
+      for (let i=0;i<25;i+=5){
+        const row = document.createElement('div'); row.className='row';
+        kids.slice(i,i+5).forEach(k=>{k.classList.add('tile'); row.appendChild(k);});
         frag.appendChild(row);
       }
-      while (grid.firstChild) grid.removeChild(grid.firstChild);
-      grid.appendChild(frag);
+      grid.replaceChildren(frag);
     }
   }
-  function placeHintZone() {
+
+  function placeHintZone(){
     const grid = document.getElementById('grid');
     const hz = document.getElementById('hint-zone');
-    if (grid && hz && hz.parentElement !== grid && grid.nextElementSibling !== hz) {
-      grid.insertAdjacentElement('afterend', hz);
-    }
+    if (grid && hz && hz.parentElement !== grid && grid.nextElementSibling !== hz) grid.insertAdjacentElement('afterend', hz);
   }
-  function rows() { return Array.from(document.querySelectorAll('#grid .row')); }
-  function firstRowWithEmpty() {
+
+  function rows(){ return Array.from(document.querySelectorAll('#grid .row')); }
+  function firstRowWithEmpty(){
     const rs = rows();
-    for (const r of rs) {
+    for (const r of rs){
       const t = Array.from(r.querySelectorAll('.tile'));
       if (t.some(x => !(x.textContent && x.textContent.trim()))) return r;
     }
-    return rs[rs.length - 1] || null;
+    return rs[rs.length-1] || null;
   }
+
+  // Guard addLetter so UI never targets undefined tile
   const _addLetter = (typeof addLetter === 'function') ? addLetter : null;
-  window.addLetter = function(ch) {
-    try {
+  window.addLetter = function(ch){
+    try{
       const row = firstRowWithEmpty();
       const tile = row && Array.from(row.querySelectorAll('.tile')).find(x => !(x.textContent && x.textContent.trim()));
       if (_addLetter) _addLetter(ch);
-      if (tile && !(tile.textContent && tile.textContent.trim())) {
-        tile.textContent = String(ch).toUpperCase();
-        tile.classList.add('filled');
-      }
-    } catch (e) { if (_addLetter) _addLetter(ch); }
+      if (tile && !(tile.textContent && tile.textContent.trim())){ tile.textContent = String(ch).toUpperCase(); tile.classList.add('filled'); }
+    }catch(e){ if (_addLetter) _addLetter(ch); }
   };
-  function boot() { setBuildTag(); healGrid(); placeHintZone(); }
+
+  function boot(){ setBuildTag(); autoHealWrap(); ensureFiveByFive(); placeHintZone(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
