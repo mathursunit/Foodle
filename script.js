@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v3.6.1';
+const APP_VERSION = 'v3.6.2';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -85,7 +85,11 @@ function onKey(e) {
   if (/^[A-Z]$/.test(key) && currentCol < 5) addLetter(key);
 }
 
-function addLetter(letter) {
+function addLetter(letter){
+  const rowEl = fihrGetRowEl();
+  const tile = fihrNextEmptyTile(rowEl);
+  if (!tile) { return; }
+
   // v3.1: mark first tile as filled to hide row label when typing
   rows[currentRow][currentCol].textContent = letter;
   currentCol++;
@@ -508,3 +512,35 @@ function placeHintZone(){
   }
 }
 document.addEventListener('DOMContentLoaded', placeHintZone);
+
+
+// v3.6.2 robust tile helpers
+function fihrGetRows(){ return Array.from(document.querySelectorAll('#grid .row')); }
+function fihrGetRowIndex(){
+  if (typeof currentRow !== 'undefined') return currentRow|0;
+  if (typeof rowIndex !== 'undefined') return rowIndex|0;
+  return 0;
+}
+function fihrGetRowEl(){
+  const rows = fihrGetRows(); if (!rows.length) return null;
+  let r = fihrGetRowIndex();
+  if (r < 0) r = 0; if (r >= rows.length) r = rows.length-1;
+  return rows[r];
+}
+function fihrNextEmptyTile(rowEl){
+  if (!rowEl) return null;
+  return Array.from(rowEl.querySelectorAll('.tile')).find(t => !t.textContent || t.textContent===' ');
+}
+
+
+// v3.6.2 safety: null-guard backspace & submit
+function fihrSafeBackspace(){
+  const rowEl = fihrGetRowEl(); if (!rowEl) return;
+  const tiles = Array.from(rowEl.querySelectorAll('.tile'));
+  const last = tiles.slice().reverse().find(t => t.textContent && t.textContent.trim());
+  if (last){ last.textContent=''; last.classList.remove('filled'); }
+}
+function fihrSafeSubmit(){
+  const rowEl = fihrGetRowEl(); if (!rowEl) return;
+  // Leave existing submit/validate logic intact; this just prevents crashes
+}
