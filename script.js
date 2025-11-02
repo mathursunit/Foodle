@@ -600,21 +600,43 @@ function fihrSafeSubmit(){
   };
 })();
 
-/* FIHR v3.7.2 hints */
-(function(){
-  const APP_VERSION_HINTS = 'v3.7.3';
-  function setBuildTag372(){ const el = document.getElementById('version-label'); if (el && !el.textContent.includes('v3.7.3')) el.textContent = 'Build v3.7.3'; }
-  async function loadHintsMap(){ if (window.HINTS_MAP) return window.HINTS_MAP; try{ const res = await fetch('assets/fihr_food_words_v1.3.csv', { cache:'no-store' }); if(!res.ok) throw new Error('CSV not found'); const text = await res.text(); const map = new Map(); text.split(/\r?\n/).forEach(line => { const trimmed = line.trim(); if(!trimmed || trimmed.startsWith('#')) return; const firstComma = trimmed.indexOf(','); if (firstComma === -1) return; const w = trimmed.slice(0, firstComma).trim(); const hint = trimmed.slice(firstComma+1).trim(); if (w && hint && w.length == 5) map.set(w.toUpperCase(), hint); }); window.HINTS_MAP = map; return map; }catch(e){ console.warn('Hints load failed:', e); window.HINTS_MAP = new Map(); return window.HINTS_MAP; } }
-  async function pickDailyWordFromHints(){ const H = await loadHintsMap(); const pool = Array.from(H.keys()); if (!pool.length) return window.DAILY_WORD || window.CURRENT_ANSWER || 'APPLE'; const dayIndex = Math.floor(Date.now() / 86400000); return pool[dayIndex % pool.length]; }
-  async function ensureDailyWordHasHint(){ const H = await loadHintsMap(); let w = (window.DAILY_WORD || window.CURRENT_ANSWER || '').toUpperCase(); if (!w || !H.has(w)) { w = await pickDailyWordFromHints(); window.DAILY_WORD = w; window.CURRENT_ANSWER = w; } }
-  function placeHintBanner(){ const grid = document.getElementById('grid'); const banner = document.getElementById('hint-banner') || document.getElementById('hint-zone'); const logoArea = document.querySelector('#logo, .logo-wrap') || grid?.parentElement; if (grid && banner && logoArea && banner.previousElementSibling !== logoArea) { logoArea.insertAdjacentElement('afterend', banner); } }
-  async function showHint372(){ await ensureDailyWordHasHint(); const map = await loadHintsMap(); const word = (window.DAILY_WORD || window.CURRENT_ANSWER || '').toUpperCase(); const hint = map.get(word); const banner = document.getElementById('hint-banner') || document.getElementById('hint-zone'); if (banner){ banner.textContent = hint || 'No hint available for this answer.'; banner.style.display = 'block'; } }
-  window.__foodleShowHint = showHint372; function hookHintButton(){ const btn = document.getElementById('get-hint-btn') || document.querySelector('.hint-btn,[data-action="hint"]'); if (btn && !btn.__wired){ btn.addEventListener('click', (e)=>{ e.preventDefault(); showHint372(); }); btn.__wired = true; } }
-  async function boot372(){ setBuildTag372(); placeHintBanner(); hookHintButton(); await ensureDailyWordHasHint(); }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot372); else boot372();
-})();
 
-/* === FIHR Foodle v3.7.3: single-boot grid normalizer to prevent duplicate/stray rows === */
-(function(){ const APPV='v3.7.3'; function setBuildTag(){ const el=document.getElementById('version-label'); if(el) el.textContent='Build ' + APPV; }
-function normalizeGrid(){ const grid=document.getElementById('grid'); if(!grid) return; let rows=Array.from(grid.querySelectorAll(':scope > .row')); if(rows.length>5) rows.slice(5).forEach(r=>r.remove()); if(rows.length===5 && rows.every(r=>r.children.length===5)) return; const direct=Array.from(grid.children); let cells=[]; direct.forEach(n=>{ if(n.classList && n.classList.contains('row')) cells.push(...n.children); else cells.push(n); }); while(cells.length<25){ const d=document.createElement('div'); d.className='tile'; cells.push(d); } cells=cells.slice(0,25); const frag=document.createDocumentFragment(); for(let i=0;i<25;i+=5){ const row=document.createElement('div'); row.className='row'; for(let j=i;j<i+5;j++){ const t=cells[j]; t.className='tile'; t.textContent=''; row.appendChild(t);} frag.appendChild(row);} grid.replaceChildren(frag);} 
-function boot(){ setBuildTag(); normalizeGrid(); } if(!window.__fihrGridBooted){ window.__fihrGridBooted=true; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot); else boot(); }})();
+/* === FIHR Foodle v3.7.4: version badge + grid heal + external tile scrub === */
+(function(){ 
+  const BUILD = 'v3.7.4';
+  function setBuildTagOnce() {
+    const el = document.getElementById('version-label');
+    if (el && !el.textContent.includes(BUILD)) el.textContent = `Build ${BUILD}`;
+  }
+  function scrubExternalTiles() {
+    const tiles = Array.from(document.querySelectorAll('.tile'));
+    tiles.forEach(t => { if (!t.closest('#grid')) t.classList.remove('tile'); });
+  }
+  function normalizeGrid() {
+    const grid = document.getElementById('grid');
+    if (!grid) return;
+    const rows = Array.from(grid.querySelectorAll(':scope > .row'));
+    if (rows.length === 5 && rows.every(r => r.children.length === 5)) return;
+    const direct = Array.from(grid.children);
+    let cells = [];
+    direct.forEach(n => {
+      if (n.classList && n.classList.contains('row')) cells.push(...n.children);
+      else if (n.classList && n.classList.contains('tile')) cells.push(n);
+      else n.remove();
+    });
+    while (cells.length < 25) { const d = document.createElement('div'); d.className='tile'; cells.push(d); }
+    cells = cells.slice(0,25);
+    const frag = document.createDocumentFragment();
+    for (let i=0;i<25;i+=5){
+      const row=document.createElement('div'); row.className='row';
+      for (let j=i;j<i+5;j++){ const t=cells[j]; t.className='tile'; t.textContent=''; row.appendChild(t); }
+      frag.appendChild(row);
+    }
+    grid.replaceChildren(frag);
+  }
+  function boot(){ setBuildTagOnce(); normalizeGrid(); scrubExternalTiles(); }
+  if (!window.__fihrV374Booted) { window.__fihrV374Booted = true;
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+    else boot();
+  }
+})();
