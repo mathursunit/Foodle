@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v3.1';
+const APP_VERSION = 'v3.2';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -53,6 +53,8 @@ function showToast(message) {
 }
 
 function startGame() {
+  loadHints();
+  initHintLink();
   ensureLegend();
   // Add row numbers 1..5 on first tile
   document.querySelectorAll('#grid .row').forEach((row, idx)=>{
@@ -268,4 +270,68 @@ function ensureLegend(){
     legend.innerHTML = '<span class="chip correct"></span><em>Correct</em> <span class="chip present"></span><em>Present</em> <span class="chip absent"></span><em>Absent</em>';
     grid.insertAdjacentElement('afterend', legend);
   }
+}
+
+
+// v3.2 inline hint system
+let HINTS_MAP = new Map();
+let HINT_USED = false;
+
+async function loadHints(){
+  try{
+    const res = await fetch('assets/words_with_hints.csv?v=' + (typeof APP_VERSION!=='undefined'?APP_VERSION:'v3.2'));
+    const txt = await res.text();
+    const lines = txt.trim().split(/\r?\n/).slice(1);
+    for(const line of lines){
+      const idx = line.indexOf(',');
+      if(idx>0){
+        const w = line.slice(0, idx).trim().toUpperCase();
+        const h = line.slice(idx+1).trim().replace(/^"|"$/g,'');
+        if(/^[A-Z]{5}$/.test(w)){ HINTS_MAP.set(w, h); }
+      }
+    }
+  }catch(e){ console.warn('Hint CSV load failed', e); }
+}
+
+function showConfirm(title, message, onYes){
+  // fallback to native confirm for simplicity
+  if (confirm(message)) onYes && onYes();
+}
+
+function applyHintPenalty(){
+  if (HINT_USED) return;
+  HINT_USED = true;
+  const hintBtn = document.getElementById('hint-link'); if (hintBtn) hintBtn.disabled = true;
+  const grid = document.getElementById('grid'); if (!grid) return;
+  const rows = Array.from(grid.querySelectorAll('.row'));
+  const total = rows.length;
+  let cr = (typeof currentRow !== 'undefined') ? currentRow
+         : (typeof rowIndex !== 'undefined') ? rowIndex
+         : 0;
+  for(let r = cr; r < total - 1; r++){
+    const tiles = rows[r].querySelectorAll('.tile');
+    tiles.forEach(t => { t.textContent = 'X'; t.classList.add('blocked'); });
+  }
+  if (typeof currentRow !== 'undefined') currentRow = total - 1;
+  if (typeof rowIndex !== 'undefined') rowIndex = total - 1;
+}
+
+function showInlineHint(){
+  const word =
+    (typeof solution !== 'undefined' && solution) ? String(solution).toUpperCase() :
+    (typeof answer   !== 'undefined' && answer)   ? String(answer).toUpperCase()   :
+    (typeof target   !== 'undefined' && target)   ? String(target).toUpperCase()   : null;
+  const hintText = (word && HINTS_MAP.get(word)) || 'No hint available for this answer.';
+  const el = document.getElementById('inline-hint');
+  if (el){ el.textContent = hintText; el.style.display = 'block'; }
+  applyHintPenalty();
+}
+
+function initHintLink(){
+  const btn = document.getElementById('hint-link');
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    if (HINT_USED){ return; }
+    showConfirm('Use hint?', 'Using a hint will leave you only one attempt. Proceed?', ()=> showInlineHint());
+  });
 }
