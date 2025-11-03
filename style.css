@@ -201,3 +201,7 @@ h1 {
 .row.crossed{ position:relative; opacity:.45; }
 .row.crossed::after{ content:""; position:absolute; left:0; right:0; top:50%; height:2px; background:#9aa0a6; transform:translateY(-50%); }
 .row.crossed .tile{ pointer-events:none; }
+
+
+/* v4.0: disable keyboard when game won */
+#keyboard.disabled{ pointer-events:none; opacity:.6; filter:grayscale(0.1); }

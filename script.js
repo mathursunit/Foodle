@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v3.7.17';
+const APP_VERSION = 'v4.0';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -19,6 +19,7 @@ function showToast(message) {
 
 
 let WORDS = [];
+let INPUT_LOCKED = false;
 let solution = '';
 let currentRow = 0, currentCol = 0;
 const rows = [];
@@ -111,7 +112,8 @@ function startGame() {
 }
 
 function onKey(e) {
-  const key = e.key.toUpperCase();
+  if (window.INPUT_LOCKED) { return; }
+const key = e.key.toUpperCase();
   if (currentRow >= 5) return;
   if (key === 'ENTER') return checkGuess();
   if (key === 'BACKSPACE') return deleteLetter();
@@ -190,7 +192,7 @@ function checkGuess() {
 
   // After animations
   setTimeout(() => {
-    if (guess === solution) {
+    if (guess === solution) { try{ window.INPUT_LOCKED = true; var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled'); }catch(e){}
       showToast('Great');
     if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 60 });
       currentRow = 5;

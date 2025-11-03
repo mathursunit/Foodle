@@ -85,3 +85,14 @@
     wireModal();
   });
 })();
+
+/* v4.0: global ESC closes any modal */
+(function(){
+  function closeAllModals(){
+    var ms = document.querySelectorAll('.modal');
+    ms.forEach(m => m.classList.add('hidden'));
+  }
+  window.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ closeAllModals(); }
+  });
+})();
