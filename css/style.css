@@ -243,3 +243,47 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
   transition: opacity .2s ease;
 }
 #version-label.build-tag:hover { opacity: 1; }
+
+
+/* === FIHR Foodle v3.7.6 hint UI === */
+#hint-banner {
+  position: relative;
+  display: none;
+  margin: 10px auto 8px;
+  max-width: 720px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f5f7fb;
+  color: #222;
+  font-size: 15px;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+}
+.hint-cta {
+  position: sticky;
+  top: 12px;
+  z-index: 40;
+  margin: 6px auto 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: 720px;
+  padding: 0 8px;
+}
+.hint-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #eef2ff;
+  color: #334155;
+  font-weight: 600;
+  border: 1px solid #dbe3ff;
+  box-shadow: 0 4px 12px rgba(0,0,0,.06);
+  cursor: pointer;
+  user-select: none;
+}
+.hint-btn:hover { background: #e5ecff; }
+.hint-btn:active { transform: translateY(1px); }
+#grid { margin-top: 4px; }

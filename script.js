@@ -601,25 +601,29 @@ function fihrSafeSubmit(){
 })();
 
 
-/* === FIHR Foodle v3.7.4: version badge + grid heal + external tile scrub === */
-(function(){ 
-  const BUILD = 'v3.7.4';
-  function setBuildTagOnce() {
-    const el = document.getElementById('version-label');
-    if (el && !el.textContent.includes(BUILD)) el.textContent = `Build ${BUILD}`;
+/* === FIHR Foodle v3.7.6: watermark, grid heal, sticky hint UI, CSV guard loader === */
+(function(){
+  const BUILD = 'v3.7.6';
+
+  // 1) Watermark enforcement
+  function enforceVersion() {
+    let el = document.getElementById('version-label');
+    if (!el) { el = document.createElement('div'); el.id='version-label'; el.className='build-tag'; document.body.appendChild(el); }
+    if (!el.classList.contains('build-tag')) el.classList.add('build-tag');
+    if (!el.textContent.includes(BUILD)) el.textContent = 'Build ' + BUILD;
+    const mo = new MutationObserver(()=>{ if (!el.textContent.includes(BUILD)) el.textContent = 'Build ' + BUILD; });
+    mo.observe(el, { childList:true, characterData:true, subtree:true });
   }
-  function scrubExternalTiles() {
-    const tiles = Array.from(document.querySelectorAll('.tile'));
-    tiles.forEach(t => { if (!t.closest('#grid')) t.classList.remove('tile'); });
-  }
-  function normalizeGrid() {
+
+  // 2) Grid self-heal (guarantee 5x5 inside #grid)
+  function normalizeGrid(){
     const grid = document.getElementById('grid');
     if (!grid) return;
     const rows = Array.from(grid.querySelectorAll(':scope > .row'));
     if (rows.length === 5 && rows.every(r => r.children.length === 5)) return;
-    const direct = Array.from(grid.children);
+    // collect any .tile directly inside grid or rows
     let cells = [];
-    direct.forEach(n => {
+    Array.from(grid.children).forEach(n => {
       if (n.classList && n.classList.contains('row')) cells.push(...n.children);
       else if (n.classList && n.classList.contains('tile')) cells.push(n);
       else n.remove();
@@ -634,32 +638,86 @@ function fihrSafeSubmit(){
     }
     grid.replaceChildren(frag);
   }
-  function boot(){ setBuildTagOnce(); normalizeGrid(); scrubExternalTiles(); }
-  if (!window.__fihrV374Booted) { window.__fihrV374Booted = true;
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-    else boot();
-  }
-})();
 
+  // 3) CSV guard loader (populate window.HINTS_MAP if missing)
+  async function ensureHintsMap() {
+    if (window.HINTS_MAP instanceof Map && window.HINTS_MAP.size > 0) return;
+    try {
+      const res = await fetch('assets/fihr_food_words_v1.3.csv', { cache: 'no-store' });
+      if (!res.ok) throw new Error('CSV fetch failed: ' + res.status);
+      const txt = await res.text();
+      const map = new Map();
+      const lines = txt.split(/\\r?\\n/).filter(Boolean);
+      for (const line of lines) {
+        let word='', hint='';
+        if (line.includes(',')) {
+          const m = line.match(/^\\s*\"?([^\",]+)\"?\\s*,\\s*\"?(.+?)\"?\\s*$/);
+          if (m) { word = m[1]; hint = m[2]; }
+          else { const i = line.indexOf(','); word = line.slice(0,i).trim(); hint = line.slice(i+1).trim(); }
+        } else { word = line.trim(); hint = ''; }
+        if (word.length === 5) map.set(word.toUpperCase(), hint);
+      }
+      if (map.size) window.HINTS_MAP = map;
+    } catch(e) { console.warn('HINTS_MAP load error:', e); }
+  }
 
-/* === FIHR Foodle v3.7.5: bottom-right watermark & strong version enforcement === */
-(function(){
-  const BUILD = 'v3.7.5';
-  function applyText(el) { if (el) el.textContent = 'Build ' + BUILD; }
-  function ensureNode() {
-    let el = document.getElementById('version-label');
-    if (!el) { el = document.createElement('div'); el.id='version-label'; el.className='build-tag'; document.body.appendChild(el); }
-    if (!el.classList.contains('build-tag')) el.classList.add('build-tag');
-    applyText(el);
-    return el;
+  // 4) Sticky hint UI (button + banner just above grid)
+  function ensureHintBanner() {
+    let banner = document.getElementById('hint-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'hint-banner';
+      banner.style.display = 'none';
+      document.body.prepend(banner);
+    }
+    const grid = document.getElementById('grid');
+    if (grid && banner.nextSibling !== grid) grid.parentNode.insertBefore(banner, grid);
+    return banner;
   }
-  function boot() {
-    const el = ensureNode();
-    // Mutation observer to prevent other scripts from overwriting
-    const mo = new MutationObserver(() => { if (!el.textContent.includes(BUILD)) applyText(el); });
-    mo.observe(el, { characterData: true, childList: true, subtree: true });
+
+  function ensureHintButton() {
+    let wrap = document.querySelector('.hint-cta');
+    if (!wrap) { wrap = document.createElement('div'); wrap.className = 'hint-cta'; }
+    let btn = wrap.querySelector('.hint-btn');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'hint-btn';
+      btn.textContent = '💡 Get a hint';
+      wrap.appendChild(btn);
+    }
+    const grid = document.getElementById('grid');
+    const banner = ensureHintBanner();
+    if (grid && wrap.parentNode !== banner.parentNode) grid.parentNode.insertBefore(wrap, grid);
+
+    if (!btn.__wired) {
+      btn.addEventListener('click', async (e)=>{
+        e.preventDefault();
+        if (typeof window.__foodleShowHint === 'function') {
+          await window.__foodleShowHint();
+        } else {
+          await ensureHintsMap();
+          const ans = (window.DAILY_WORD || window.CURRENT_ANSWER || '').toString().toUpperCase();
+          const hint = (window.HINTS_MAP && window.HINTS_MAP.get(ans)) || 'No hint available for this answer.';
+          const b = ensureHintBanner();
+          b.textContent = hint;
+          b.style.display = 'block';
+          b.scrollIntoView({ block:'nearest', behavior:'smooth' });
+        }
+      });
+      btn.__wired = true;
+    }
   }
-  if (!window.__fihrV375Booted) { window.__fihrV375Booted = true;
+
+  function boot(){
+    enforceVersion();
+    normalizeGrid();
+    ensureHintBanner();
+    ensureHintButton();
+    ensureHintsMap();
+  }
+  if (!window.__fihrV376Boot) {
+    window.__fihrV376Boot = true;
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
     else boot();
   }
