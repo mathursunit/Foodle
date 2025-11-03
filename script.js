@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v3.7.16';
+const APP_VERSION = 'v3.7.17';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -19,7 +19,6 @@ function showToast(message) {
 
 
 let WORDS = [];
-let HINTS = [];
 let solution = '';
 let currentRow = 0, currentCol = 0;
 const rows = [];
@@ -29,22 +28,17 @@ const rows = [];
   fetch('assets/fihr_food_words_v1.4.csv')
     .then(r => r.text())
     .then(text => {
-      const lines = text.split(/?
-/).map(s => s.trim()).filter(Boolean);
-      const w = []; const h = [];
+      const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      const arr = [];
       for (let i=0;i<lines.length;i++){
         const parts = lines[i].split(',');
         if (!parts.length) continue;
-        let word = (parts[0]||'').replace(/[^A-Za-z]/g,'').toUpperCase();
-        let hint = (parts[1]||'').trim();
-        if (i===0 && word.toLowerCase()==='word') continue; // header
-        if (word.length === 5){
-          w.push(word);
-          h.push(hint);
-        }
+        let w = (parts[0]||'').replace(/[^A-Za-z]/g,'').toUpperCase();
+        if (i===0 && w.toLowerCase()==='word') continue;
+        if (w.length === 5) arr.push(w);
       }
-      if (w.length){
-        WORDS = w; HINTS = h;
+      if (arr.length) {
+        WORDS = arr;
       } else {
         throw new Error('No 5-letter words parsed from CSV');
       }
@@ -52,9 +46,7 @@ const rows = [];
     })
     .catch(() => {
       return fetch('words.txt?v=v2.9?v=v2.7').then(r => r.text()).then(txt => {
-        WORDS = txt.split('
-').map(w => w.trim().toUpperCase()).filter(Boolean);
-        HINTS = new Array(WORDS.length).fill(''); // no hints in fallback
+        WORDS = txt.split('\n').map(w => w.trim().toUpperCase()).filter(Boolean);
         startGame();
       });
     });
@@ -94,9 +86,7 @@ function startGame() {
   initMenu();
   (function(){try{var wm=document.createElement('div');wm.textContent='Build '+APP_VERSION;wm.style.position='fixed';wm.style.right='10px';wm.style.bottom='8px';wm.style.opacity='.35';wm.style.fontWeight='700';wm.style.pointerEvents='none';document.body.appendChild(wm);}catch(e){}})();
   const vl = document.getElementById('version-label'); if (vl) vl.textContent = 'Build ' + APP_VERSION;
-  const __idx = getDailyIndex();
-  solution = WORDS[__idx];
-  window.CURRENT_HINT = (typeof HINTS !== 'undefined' && HINTS[__idx]) ? HINTS[__idx] : '';
+  solution = WORDS[getDailyIndex()];
   document.body.focus();
   document.querySelectorAll('.row').forEach(r => rows.push(Array.from(r.children)));
   window.addEventListener('keydown', onKey);
@@ -106,42 +96,16 @@ function startGame() {
       onKey({ key: k });
     });
   });
-    // Hint rule with modal confirm (v3.7.15)
+  // Hint rule: if a button with id="hintBtn" exists, using it leaves only one remaining guess
   (function(){
     const hb = document.getElementById('hintBtn');
-    const modal = document.getElementById('hintModal');
-    const btnCancel = document.getElementById('hintCancel');
-    const btnConfirm = document.getElementById('hintConfirm');
-    if(!hb || !modal || !btnCancel || !btnConfirm) return;
+    if(!hb) return;
     let used = false;
-    function openModal(){ modal.classList.remove('hidden'); }
-    function closeModal(){ modal.classList.add('hidden'); }
     hb.addEventListener('click', () => {
-      if(used) { try{ showToast('Hint already used'); }catch(e){}; return; }
-      openModal();
-    });
-    btnCancel.addEventListener('click', closeModal);
-    modal.querySelector('.modal-backdrop').addEventListener('click', closeModal);
-    btnConfirm.addEventListener('click', () => {
       if(used) return;
       used = true;
-      closeModal();
-      // Cross out all but one remaining guesses (leave only last row active)
-      try{
-        const allRows = Array.from(document.querySelectorAll('#grid .row'));
-        // Clamp to 5 rows max (v3.1 has 5)
-        for(let r=0; r<allRows.length; r++){
-          if(r < allRows.length-1){
-            allRows[r].classList.add('crossed');
-            // Clear letters to avoid confusion
-            Array.from(allRows[r].children).forEach(t => t.textContent = '');
-          }
-        }
-        currentRow = Math.max(0, allRows.length - 1); // jump to last row
-      }catch(e){}
-      try{ if(window.CURRENT_HINT){ showToast(('Hint: '+window.CURRENT_HINT).toUpperCase()); } }catch(e){}
+      if (currentRow < 4) currentRow = 4;
       try{ showToast('Only 1 guess left!'); }catch(e){}
-      try{ var ht=document.getElementById('hintText'); if(ht && window.CURRENT_HINT){ ht.textContent='Hint: '+window.CURRENT_HINT; } }catch(e){}
     });
   })();
 }

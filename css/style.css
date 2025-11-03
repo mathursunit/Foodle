@@ -150,31 +150,20 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 .tile.has-letter.row-label::before{ display:none; }
 
 
-/* --- Hint button (v3.7.14) --- */
-.controls{ display:flex; justify-content:flex-end; align-items:center; margin:.25rem 0 .5rem; }
-.hint-btn{
-  border:none;
-  border-radius:6px;
-  padding:.4rem .7rem;
-  font-family: inherit;
-  font-weight:700;
-  cursor:pointer;
-  background:#d3d6da;
-  color:#111;
-  box-shadow: 0 3px 0 #b3b6b8;
-}
-.hint-btn:active{ transform: translateY(1px); box-shadow: 0 2px 0 #b3b6b8; }
+/* --- Hint button & container (v3.7.17) --- */
+.controls{ display:flex; justify-content:flex-end; align-items:center; margin:.25rem 0 .25rem; }
+.hint-btn{ border:none; border-radius:6px; padding:.35rem .65rem; font-weight:700; cursor:pointer;
+  background:#d3d6da; color:#111; box-shadow:0 3px 0 #b3b6b8; }
+.hint-btn:active{ transform:translateY(1px); box-shadow:0 2px 0 #b3b6b8; }
+.hint-text{ margin:.15rem 0 .35rem; color:#6b7280; font-size:.9rem; font-weight:600; }
 
-
-/* ===== Modal (v3.7.15) ===== */
+/* --- Modal (v3.7.17) --- */
 .modal.hidden{ display:none; }
 .modal{ position:fixed; inset:0; z-index:9999; display:block; }
 .modal-backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.45); }
-.modal-box{
-  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-  background:#fff; color:#111; border-radius:10px; padding:1rem 1rem 0.75rem;
-  width:min(92vw, 420px); box-shadow:0 20px 60px rgba(0,0,0,.25);
-}
+.modal-box{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  background:#fff; color:#111; border-radius:10px; padding:1rem 1rem .85rem; width:min(92vw,420px);
+  box-shadow:0 20px 60px rgba(0,0,0,.25); }
 .modal-box h2{ margin:0 0 .4rem 0; font-size:1.15rem; }
 .modal-box p{ margin:.25rem 0 .9rem 0; line-height:1.35; }
 .modal-actions{ display:flex; gap:.5rem; justify-content:flex-end; }
@@ -184,23 +173,7 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 .btn-secondary{ background:#d3d6da; color:#111; box-shadow:0 3px 0 #b3b6b8; }
 .btn-secondary:active{ transform:translateY(1px); box-shadow:0 2px 0 #b3b6b8; }
 
-/* ===== Cross out rows when hint is used (v3.7.15) ===== */
+/* --- Cross-out rows (v3.7.17) --- */
 .row.crossed{ position:relative; opacity:.45; }
-.row.crossed::after{
-  content:""; position:absolute; left:0; right:0; top:50%; height:2px; background:#9aa0a6;
-  transform: translateY(-50%);
-}
-/* Keep tiles non-interactive on crossed rows */
+.row.crossed::after{ content:""; position:absolute; left:0; right:0; top:50%; height:2px; background:#9aa0a6; transform:translateY(-50%); }
 .row.crossed .tile{ pointer-events:none; }
-
-/* Hint controls spacing */
-.controls{ display:flex; justify-content:flex-end; margin:.25rem 0 .5rem; }
-
-
-/* Hint text (v3.7.16) */
-.hint-text{
-  margin:.25rem 0 .5rem;
-  color:#6b7280; /* slate-500 */
-  font-size:.9rem;
-  font-weight:600;
-}
