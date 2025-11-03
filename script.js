@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v3.7.14';
+const APP_VERSION = 'v3.7.15';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -84,7 +84,7 @@ function startGame() {
   layoutGrid();
   window.setTimeout(layoutGrid, 50);
   initMenu();
-  (function(){try{var wm=document.createElement('div');wm.textContent='Build v3.7.13';wm.style.position='fixed';wm.style.right='10px';wm.style.bottom='8px';wm.style.opacity='.35';wm.style.fontWeight='700';wm.style.pointerEvents='none';document.body.appendChild(wm);}catch(e){}})();
+  (function(){try{var wm=document.createElement('div');wm.textContent='Build '+APP_VERSION;wm.style.position='fixed';wm.style.right='10px';wm.style.bottom='8px';wm.style.opacity='.35';wm.style.fontWeight='700';wm.style.pointerEvents='none';document.body.appendChild(wm);}catch(e){}})();
   const vl = document.getElementById('version-label'); if (vl) vl.textContent = 'Build ' + APP_VERSION;
   solution = WORDS[getDailyIndex()];
   document.body.focus();
@@ -96,15 +96,39 @@ function startGame() {
       onKey({ key: k });
     });
   });
-  // Hint rule: if a button with id="hintBtn" exists, using it leaves only one remaining guess
+    // Hint rule with modal confirm (v3.7.15)
   (function(){
     const hb = document.getElementById('hintBtn');
-    if(!hb) return;
+    const modal = document.getElementById('hintModal');
+    const btnCancel = document.getElementById('hintCancel');
+    const btnConfirm = document.getElementById('hintConfirm');
+    if(!hb || !modal || !btnCancel || !btnConfirm) return;
     let used = false;
+    function openModal(){ modal.classList.remove('hidden'); }
+    function closeModal(){ modal.classList.add('hidden'); }
     hb.addEventListener('click', () => {
+      if(used) { try{ showToast('Hint already used'); }catch(e){}; return; }
+      openModal();
+    });
+    btnCancel.addEventListener('click', closeModal);
+    modal.querySelector('.modal-backdrop').addEventListener('click', closeModal);
+    btnConfirm.addEventListener('click', () => {
       if(used) return;
       used = true;
-      if (currentRow < 4) currentRow = 4;
+      closeModal();
+      // Cross out all but one remaining guesses (leave only last row active)
+      try{
+        const allRows = Array.from(document.querySelectorAll('#grid .row'));
+        // Clamp to 5 rows max (v3.1 has 5)
+        for(let r=0; r<allRows.length; r++){
+          if(r < allRows.length-1){
+            allRows[r].classList.add('crossed');
+            // Clear letters to avoid confusion
+            Array.from(allRows[r].children).forEach(t => t.textContent = '');
+          }
+        }
+        currentRow = Math.max(0, allRows.length - 1); // jump to last row
+      }catch(e){}
       try{ showToast('Only 1 guess left!'); }catch(e){}
     });
   })();
