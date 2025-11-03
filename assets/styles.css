@@ -1,4 +1,4 @@
-/* Keep same color scheme / fonts from baseline via tokens (adjust if your v3.1 uses different values) */
+/* Same theme as baseline */
 :root{
   --bg:#0b1b2b;
   --panel:#10243a;
@@ -50,7 +50,6 @@ body{
 .grid{
   width:min(600px, 92vw);
   display:grid; gap:8px;
-  /* Ensure we never collapse to one column; default to 5 columns */
   grid-template-columns: repeat(5, 1fr);
 }
 
@@ -92,7 +91,6 @@ body{
   user-select:none;
 }
 
-/* Responsive safeguard: maintain at least 5 columns even on tiny screens */
 @media (max-width:420px){
   .grid{ grid-template-columns: repeat(5, 1fr); }
   .tile{ width: calc(18vw - 6px); height: calc(18vw - 6px) }

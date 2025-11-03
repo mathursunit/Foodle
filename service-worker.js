@@ -1,25 +1,18 @@
-const CACHE = 'fihr-foodle-v3-7-10';
+const CACHE = 'fihr-foodle-v3-7-11';
 const ASSETS = [
   './',
   './index.html',
   './assets/styles.css',
   './scripts/main.js',
-  './scripts/grid.js',
-  './scripts/hint.js',
   './manifest.json',
   './assets/fihr_food_words_v1.4.csv'
 ];
-
 self.addEventListener('install', (e)=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
 });
-
 self.addEventListener('activate', (e)=>{
-  e.waitUntil(
-    caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))
-  );
+  e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
 });
-
 self.addEventListener('fetch', (e)=>{
   const req = e.request;
   e.respondWith(

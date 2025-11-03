@@ -1,24 +1,19 @@
-# FIHR Foodle v3.7.10
+# FIHR Foodle v3.7.11
 
-**Baseline:** v3.1 (2025-11-01)  
-**Changes in v3.7.10:**
-- Fixed grid initialization to prevent 1-column bug.
-- Enforced hint rule: using a hint leaves **one** remaining guess.
-- Switched to CSV word list: `assets/fihr_food_words_v1.4.csv` (word,hint).
-- Added static bottom-right watermark: **Build v3.7.10**.
-- Kept same color scheme, layout, font stack, and PWA setup.
+**Fixes from v3.7.10**  
+- Removed ES module imports; everything in `scripts/main.js` (non‑module).  
+- Clear error text if CSV fails to load when opened via `file://`.
 
-## Run locally
-Open `index.html` directly, or better, serve with a simple HTTP server for service worker to work:
+**Still included**  
+- Grid init fix (no 1‑column bug)  
+- Hint rule: "use a hint → only 1 guess left"  
+- CSV word list: `assets/fihr_food_words_v1.4.csv`  
+- Static watermark ("Build v3.7.11")  
+- Same color scheme, layout, fonts, and PWA
 
+## Local run
+To avoid CSV fetch restrictions and enable SW:
 ```bash
 python3 -m http.server 8080
-# then visit http://localhost:8080
+# Visit http://localhost:8080
 ```
-
-## CSV Format
-- First row may be `word,hint` header.
-- Only words with 5 letters are used as answers by default (tweak `GRID_COLS` in `scripts/grid.js`).
-
-## PWA
-- Manifest and icons provided; service worker caches core assets for offline use.
