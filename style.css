@@ -203,3 +203,12 @@ h1 {
 
 /* Hint controls spacing */
 .controls{ display:flex; justify-content:flex-end; margin:.25rem 0 .5rem; }
+
+
+/* Hint text (v3.7.16) */
+.hint-text{
+  margin:.25rem 0 .5rem;
+  color:#6b7280; /* slate-500 */
+  font-size:.9rem;
+  font-weight:600;
+}
