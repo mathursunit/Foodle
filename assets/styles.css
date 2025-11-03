@@ -1,0 +1,99 @@
+/* Keep same color scheme / fonts from baseline via tokens (adjust if your v3.1 uses different values) */
+:root{
+  --bg:#0b1b2b;
+  --panel:#10243a;
+  --tile:#16324a;
+  --text:#e6f1ff;
+  --muted:#9bb3cc;
+  --accent:#0f9d58;
+  --warn:#f4b400;
+  --bad:#db4437;
+  --good:#34a853;
+  --kbd:#223b55;
+  --kbd-text:#ddf;
+  --font-stack: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-stack);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.app-header{
+  width:min(900px, 95vw);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 8px; margin-top:8px;
+}
+
+.app-header h1{margin:0; font-weight:700; letter-spacing:.5px}
+.header-actions button{
+  background:var(--kbd);
+  color:var(--kbd-text);
+  border:1px solid #2b4a6a;
+  padding:8px 12px; border-radius:10px; cursor:pointer;
+}
+
+.game{
+  width:min(900px, 95vw);
+  display:grid; gap:16px;
+  grid-template-columns: 1fr;
+  align-items:center; justify-items:center;
+}
+
+.grid{
+  width:min(600px, 92vw);
+  display:grid; gap:8px;
+  /* Ensure we never collapse to one column; default to 5 columns */
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.tile{
+  width: min(11vw, 96px);
+  height: min(11vw, 96px);
+  max-width: 96px; max-height:96px;
+  background:var(--tile);
+  border:2px solid #2b4a6a;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size: clamp(18px, 5vw, 36px);
+  border-radius:10px;
+  text-transform:uppercase;
+}
+
+.tile.correct{ background:var(--good); color:#fff; border-color: var(--good) }
+.tile.present{ background:var(--warn); color:#111; border-color: var(--warn) }
+.tile.absent{ background:#25445f; color:#a9bed2; border-color:#25445f }
+
+.keyboard{
+  width:min(900px, 95vw);
+  display:grid; gap:6px;
+  grid-template-columns: repeat(20, 1fr);
+}
+
+.key{
+  background:var(--kbd);
+  color:var(--kbd-text);
+  border:1px solid #2b4a6a;
+  padding:10px 0; text-align:center; border-radius:8px;
+  cursor:pointer; user-select:none;
+}
+
+.statusbar{ margin:12px 0 24px; font-size:14px; color:var(--muted) }
+
+.watermark{
+  position:fixed; right:10px; bottom:8px;
+  opacity:.35; font-weight:700; pointer-events:none;
+  user-select:none;
+}
+
+/* Responsive safeguard: maintain at least 5 columns even on tiny screens */
+@media (max-width:420px){
+  .grid{ grid-template-columns: repeat(5, 1fr); }
+  .tile{ width: calc(18vw - 6px); height: calc(18vw - 6px) }
+}

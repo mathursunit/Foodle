@@ -1,73 +1,37 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
 <head>
-<link href="manifest.json" rel="manifest"/>
-<meta content="#6aaa64" name="theme-color"/>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>FIHR - Foodle</title>
-<!-- Clear Sans webfont for NYTimes Wordle look -->
-<link href="https://cdn.jsdelivr.net/gh/resir014/Clear-Sans-Webfont@v1.1.1/css/clear-sans.css" rel="stylesheet"/>
-<link href="css/style.css?v=v3.7.9" rel="stylesheet"/>
-<link href="logo.png" rel="apple-touch-icon"/><meta content="yes" name="apple-mobile-web-app-capable"/><meta content="FunWords" name="apple-mobile-web-app-title"/><meta content="default" name="apple-mobile-web-app-status-bar-style"/><link href="/icons/icon-120x120.png" rel="apple-touch-icon" sizes="120x120"/><link href="/icons/icon-152x152.png" rel="apple-touch-icon" sizes="152x152"/><link href="/icons/icon-167x167.png" rel="apple-touch-icon" sizes="167x167"/><link href="/icons/icon-180x180.png" rel="apple-touch-icon" sizes="180x180"/><link href="/splash/launch-640x1136.png" media="(device-width: 320px)" rel="apple-touch-startup-image"/><link href="/splash/launch-750x1334.png" media="(device-width: 375px)" rel="apple-touch-startup-image"/><link href="/splash/launch-1242x2208.png" media="(device-width: 414px)" rel="apple-touch-startup-image"/><link href="/splash/launch-1536x2048.png" media="(device-width: 768px)" rel="apple-touch-startup-image"/><link href="/splash/launch-1668x2224.png" media="(device-width: 834px)" rel="apple-touch-startup-image"/><link href="/splash/launch-2048x2732.png" media="(device-width: 1024px)" rel="apple-touch-startup-image"/>  <link rel="icon" href="assets/favicon.ico">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>FIHR Foodle v3.7.10</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icons/icon-192.png" sizes="192x192">
+  <meta name="theme-color" content="#0f4c81">
+  <link rel="stylesheet" href="assets/styles.css">
 </head>
-<body tabindex="0">
+<body>
+  <header class="app-header">
+    <h1>FIHR Foodle</h1>
+    <div class="header-actions">
+      <button id="hintBtn" aria-label="Use a hint">💡 Hint</button>
+      <button id="restartBtn" aria-label="Restart">↻</button>
+    </div>
+  </header>
 
-<div id="menu-root">
-  <button id="menu-btn" aria-label="Menu" title="Menu">⋯</button>
-  <div id="menu-panel" role="menu" aria-hidden="true">
-    <button class="menu-item" data-action="version" role="menuitem">Version</button>
-    <button class="menu-item" data-action="about" role="menuitem">About</button>
-  </div>
-</div>
+  <main class="game">
+    <div id="grid" class="grid" aria-label="Guess grid"></div>
+    <div id="keyboard" class="keyboard" aria-label="On-screen keyboard"></div>
+  </main>
 
-<h1 class="sr-only app-title">FIHR – Foodle</h1>
-<div id="countdown">Next word in 00:00:00</div><!-- Toast container -->
-<div id="toast-container"></div>
-<div class="game-container">
-<img src="assets/fihr-foodle-title.png?v=v2.7" alt="FIHR Foodle" class="title-banner">
-  <div id="inline-hint" aria-live="polite"></div>
-</div>
+  <section class="statusbar" role="status" aria-live="polite">
+    <span id="statusText">Loading...</span>
+  </section>
 
-<div id="hint-zone"><div class="hint-row"><button id="hint-link" class="hint-link" type="button">💡 Get a hint</button></div><div id="inline-hint" aria-live="polite"></div></div>
-<div id="version-label" class="subtle-version"></div><div id="hint-banner" style="display:none"></div>
-<div id="grid">
-<div class="row"><div class="tile"></div>
-</div>
-<div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div></div>
-<div class="row"><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div></div>
-<div class="row"><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div></div>
-<div class="row"><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div></div>
-<div class="row"><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div></div>
+  <footer class="watermark">Build v3.7.10</footer>
 
-<div id="keyboard">
-  <div class="krow">
-    <button class="key">Q</button><button class="key">W</button><button class="key">E</button><button class="key">R</button><button class="key">T</button><button class="key">Y</button><button class="key">U</button><button class="key">I</button><button class="key">O</button><button class="key">P</button>
-  </div>
-  <div class="krow">
-    <button class="key">A</button><button class="key">S</button><button class="key">D</button><button class="key">F</button><button class="key">G</button><button class="key">H</button><button class="key">J</button><button class="key">K</button><button class="key">L</button>
-  </div>
-  <div class="krow krow-nav">
-    <button class="key wide" data-key="Enter">Enter</button>
-    <button class="key">Z</button><button class="key">X</button><button class="key">C</button><button class="key">V</button><button class="key">B</button><button class="key">N</button><button class="key">M</button>
-    <button class="key wide" data-key="Backspace">⌫</button>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-<script src="script.js?v=v3.7.9"></script>
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('service-worker.js')
-      .catch(err => console.warn('SW registration failed:', err));
-  });
-}
-</script>
+  <script>window.FOODLE_BUILD="v3.7.10";</script>
+  <script src="scripts/grid.js"></script>
+  <script src="scripts/hint.js"></script>
+  <script src="scripts/main.js"></script>
 </body>
 </html>
-
