@@ -289,10 +289,28 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 #grid { margin-top: 4px; }
 
 
-/* === FIHR Foodle v3.7.7: locked tile after hint === */
-.tile-locked {
-  background: #d1d5db !important;
-  color: #888 !important;
+/* === FIHR Foodle v3.7.8: row lock (safe overlay) === */
+#grid .row-locked .tile { 
   pointer-events: none;
-  opacity: 0.7;
+  background: #e5e7eb !important;
+  color: #6b7280 !important;
+  opacity: .85;
+}
+#grid .row-locked .tile::after {
+  content: 'X';
+  font-weight: 600;
+}
+
+/* bottom-right build watermark */
+#version-label.build-tag {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  background: rgba(0,0,0,.06);
+  color: #374151;
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
 }
