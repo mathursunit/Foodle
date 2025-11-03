@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v4.0';
+const APP_VERSION = 'v4.0.1';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -192,12 +192,21 @@ function checkGuess() {
 
   // After animations
   setTimeout(() => {
-    if (guess === solution) { try{ window.INPUT_LOCKED = true; var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled'); }catch(e){}
+    if (guess === solution) { try{ window.INPUT_LOCKED = true; var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled'); }catch(e){} try{ if (typeof showToast==='function'){ showToast('Game Over - You Rock!'); } }catch(e){} try{ window.INPUT_LOCKED = true; var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled'); }catch(e){}
       showToast('Great');
     if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 60 });
       currentRow = 5;
     } else {
       currentRow++;
+      try{
+        var rowsTotal = 5; // v3.1 layout uses 5 rows
+        if (typeof MAX_ROWS !== 'undefined') rowsTotal = MAX_ROWS;
+        if (currentRow >= rowsTotal && guess !== solution) {
+          window.INPUT_LOCKED = true; var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled');
+          if (typeof showToast==='function'){ showToast('Game Over - Better luck tomorrow'); }
+        }
+      }catch(e){}
+
       currentCol = 0;
       if (currentRow === 5) {
         showToast(`The word was ${solution}`);
