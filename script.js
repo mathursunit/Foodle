@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v3.1';
+const APP_VERSION = 'v3.7.13';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -23,12 +23,34 @@ let solution = '';
 let currentRow = 0, currentCol = 0;
 const rows = [];
 
-fetch('words.txt?v=v2.9?v=v2.7')
-  .then(r => r.text())
-  .then(txt => {
-    WORDS = txt.split('\n').map(w => w.trim().toUpperCase()).filter(Boolean);
-    startGame();
-  }).catch(()=>{ WORDS=['APPLE','MANGO','BERRY','PIZZA','ALONE','PASTA','BREAD','SALAD','GRAPE','CHILI']; startGame(); });
+(function loadWords(){
+  // Try CSV first; fallback to words.txt if not available
+  fetch('assets/fihr_food_words_v1.4.csv')
+    .then(r => r.text())
+    .then(text => {
+      const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      const arr = [];
+      for (let i=0;i<lines.length;i++){
+        const parts = lines[i].split(',');
+        if (!parts.length) continue;
+        let w = (parts[0]||'').replace(/[^A-Za-z]/g,'').toUpperCase();
+        if (i===0 && w.toLowerCase()==='word') continue;
+        if (w.length === 5) arr.push(w);
+      }
+      if (arr.length) {
+        WORDS = arr;
+      } else {
+        throw new Error('No 5-letter words parsed from CSV');
+      }
+      startGame();
+    })
+    .catch(() => {
+      return fetch('words.txt?v=v2.9?v=v2.7').then(r => r.text()).then(txt => {
+        WORDS = txt.split('\n').map(w => w.trim().toUpperCase()).filter(Boolean);
+        startGame();
+      });
+    });
+})();
 
 function getDailyIndex() {
   const now = new Date();
@@ -62,6 +84,7 @@ function startGame() {
   layoutGrid();
   window.setTimeout(layoutGrid, 50);
   initMenu();
+  (function(){try{var wm=document.createElement('div');wm.textContent='Build v3.7.13';wm.style.position='fixed';wm.style.right='10px';wm.style.bottom='8px';wm.style.opacity='.35';wm.style.fontWeight='700';wm.style.pointerEvents='none';document.body.appendChild(wm);}catch(e){}})();
   const vl = document.getElementById('version-label'); if (vl) vl.textContent = 'Build ' + APP_VERSION;
   solution = WORDS[getDailyIndex()];
   document.body.focus();
@@ -73,6 +96,18 @@ function startGame() {
       onKey({ key: k });
     });
   });
+  // Hint rule: if a button with id="hintBtn" exists, using it leaves only one remaining guess
+  (function(){
+    const hb = document.getElementById('hintBtn');
+    if(!hb) return;
+    let used = false;
+    hb.addEventListener('click', () => {
+      if(used) return;
+      used = true;
+      if (currentRow < 4) currentRow = 4;
+      try{ showToast('Only 1 guess left!'); }catch(e){}
+    });
+  })();
 }
 
 function onKey(e) {
