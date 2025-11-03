@@ -148,3 +148,19 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
   pointer-events:none;
 }
 .tile.has-letter.row-label::before{ display:none; }
+
+
+/* --- Hint button (v3.7.14) --- */
+.controls{ display:flex; justify-content:flex-end; align-items:center; margin:.25rem 0 .5rem; }
+.hint-btn{
+  border:none;
+  border-radius:6px;
+  padding:.4rem .7rem;
+  font-family: inherit;
+  font-weight:700;
+  cursor:pointer;
+  background:#d3d6da;
+  color:#111;
+  box-shadow: 0 3px 0 #b3b6b8;
+}
+.hint-btn:active{ transform: translateY(1px); box-shadow: 0 2px 0 #b3b6b8; }
