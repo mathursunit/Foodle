@@ -314,3 +314,12 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
   z-index: 9999;
   backdrop-filter: blur(2px);
 }
+
+
+/* === FIHR Foodle v3.7.9 patch === */
+#grid .row-locked .tile { pointer-events:none; position:relative; opacity:.85; }
+#grid .row-locked .tile::after { content:''; position:absolute; inset:0; background:rgba(229,231,235,.9); border-radius:inherit; }
+
+#hint-banner { position:relative; display:none; margin:10px auto 8px; max-width:720px; padding:10px 14px; border-radius:12px; background:#f5f7fb; color:#222; font-size:15px; text-align:center; box-shadow:0 6px 18px rgba(0,0,0,.08); }
+
+#version-label.build-tag { position:fixed; right:12px; bottom:12px; background:rgba(0,0,0,.06); color:#374151; font-size:12px; border-radius:999px; padding:6px 10px; z-index:9999; backdrop-filter:blur(2px); user-select:none; pointer-events:none; }

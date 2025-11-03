@@ -815,3 +815,121 @@ function fihrSafeSubmit(){
     window.__fihr_hint_lock_v377 = true;
   }
 })();
+
+
+/* === FIHR Foodle v3.7.9: hint fix + one-guess overlay + watermark === */
+(function () {
+  var BUILD = 'v3.7.9';
+
+  // Watermark enforcement
+  (function ensureWatermark() {
+    var el = document.getElementById('version-label');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'version-label';
+      el.className = 'build-tag';
+      document.body.appendChild(el);
+    }
+    el.textContent = 'Build ' + BUILD;
+    var mo = new MutationObserver(function () {
+      if (!el.textContent || el.textContent.indexOf(BUILD) === -1) el.textContent = 'Build ' + BUILD;
+    });
+    mo.observe(el, { childList: true, characterData: true, subtree: true });
+  })();
+
+  // CSV hint loader
+  function ensureHintsMap() {
+    if (window.HINTS_MAP instanceof Map && window.HINTS_MAP.size) return Promise.resolve();
+    return fetch('assets/fihr_food_words_v1.3.csv', { cache: 'no-store' })
+      .then(function (res) { return res.text(); })
+      .then(function (text) {
+        var map = new Map();
+        text.split(/\r?\n/).forEach(function (line) {
+          var trimmed = (line || '').trim();
+          if (!trimmed || trimmed[0] === '#') return;
+          var idx = trimmed.indexOf(',');
+          var word = trimmed, hint = '';
+          if (idx !== -1) {
+            word = trimmed.slice(0, idx).trim();
+            hint = trimmed.slice(idx + 1).trim().replace(/^"|"$/g, '');
+          }
+          if (word && word.length === 5) map.set(word.toUpperCase(), hint);
+        });
+        window.HINTS_MAP = map;
+      })
+      .catch(function () { window.HINTS_MAP = new Map(); });
+  }
+
+  function ensureHintBanner() {
+    var banner = document.getElementById('hint-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'hint-banner';
+      banner.style.display = 'none';
+      var grid = document.getElementById('grid');
+      if (grid && grid.parentNode) grid.parentNode.insertBefore(banner, grid);
+      else document.body.prepend(banner);
+    }
+    return banner;
+  }
+
+  function getAnswerUpper() { return String(window.DAILY_WORD || window.CURRENT_ANSWER || '').toUpperCase(); }
+
+  // Non-destructive one-guess overlay
+  function activeRowIndex() {
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#grid .row'));
+    for (var i = 0; i < rows.length; i++) {
+      var tiles = Array.prototype.slice.call(rows[i].children);
+      var hasEmpty = tiles.some(function (t) { return !(t.textContent || '').trim(); });
+      if (hasEmpty) return i;
+    }
+    return rows.length - 1;
+  }
+  function lockAllBut(indexKeep) {
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#grid .row'));
+    rows.forEach(function (r, i) {
+      if (i !== indexKeep) r.classList.add('row-locked');
+      else r.classList.remove('row-locked');
+    });
+  }
+
+  // Wire hint button (create wrapper+button if missing)
+  function wireHint() {
+    var wrap = document.querySelector('.hint-cta');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.className = 'hint-cta';
+      var grid = document.getElementById('grid');
+      if (grid && grid.parentNode) grid.parentNode.insertBefore(wrap, grid);
+    }
+    var btn = wrap.querySelector('.hint-btn');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'hint-btn';
+      btn.textContent = '💡 Get a hint';
+      wrap.appendChild(btn);
+    }
+    if (btn.__wired) return;
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (!confirm('Using a hint will leave you only one remaining guess. Proceed?')) return;
+      ensureHintsMap().then(function () {
+        var H = window.HINTS_MAP || new Map();
+        var ans = getAnswerUpper();
+        var hint = H.get(ans) || 'No hint found — please update the word list.';
+        var banner = ensureHintBanner();
+        banner.textContent = hint;
+        banner.style.display = 'block';
+        try { banner.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch(_) {}
+        var keep = activeRowIndex();
+        lockAllBut(keep);
+        btn.disabled = true;
+      });
+    });
+    btn.__wired = true;
+  }
+
+  function boot(){ ensureHintsMap(); wireHint(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
