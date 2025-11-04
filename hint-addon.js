@@ -1,11 +1,12 @@
-// hint-addon.js (v4.0.3) — cancel-safe: no UI changes on cancel; cleanup on ESC
+// hint-addon.js (v4.0.5) — spinner, race-free loading, cancel-safe, replace button with hint
 (function(){
   function qs(s){ return document.querySelector(s); }
   function qsa(s,root){ return Array.from((root||document).querySelectorAll(s)); }
 
   let used = false;
   let CURRENT_HINT = '';
-  let preRow = null; // remember cursor row before opening modal
+  let hintsReady = false;
+  let preRow = null;
 
   function getIndex(){
     try{ if (typeof getDailyIndex === 'function') return getDailyIndex(); }catch(e){}
@@ -13,7 +14,7 @@
   }
 
   function loadHints(){
-    return fetch('assets/fihr_food_words_v1.4.csv')
+    return fetch('assets/fihr_food_words_v1.4.csv', {cache:'no-store'})
       .then(r => r.text())
       .then(text => {
         const lines = text.split(/\\r?\\n/).map(s => s.trim()).filter(Boolean);
@@ -29,7 +30,8 @@
         const idx = Math.min(getIndex(), hints.length - 1);
         CURRENT_HINT = hints[idx] || '';
       })
-      .catch(()=>{ CURRENT_HINT=''; });
+      .catch(()=>{ CURRENT_HINT=''; })
+      .finally(()=>{ hintsReady = true; });
   }
 
   function showToastSafe(msg){
@@ -47,7 +49,6 @@
   }
 
   function clearOneGuessUI(){
-    // Remove any accidental crosses, re-enable keyboard, reset cursor
     const rows = qsa('#grid .row');
     rows.forEach(r => r.classList.remove('crossed'));
     try{
@@ -64,11 +65,7 @@
     const label = document.createElement('div');
     label.className = 'hint-label';
     label.textContent = CURRENT_HINT ? `Hint: ${CURRENT_HINT}` : 'Hint used';
-    if (wrap === hb) {
-      hb.replaceWith(label);
-    } else {
-      wrap.replaceWith(label);
-    }
+    if (wrap === hb) { hb.replaceWith(label); } else { wrap.replaceWith(label); }
   }
 
   function wireModal(){
@@ -78,31 +75,28 @@
     const confirmBtn = qs('#hintConfirm');
     if (!hb || !modal || !cancelBtn || !confirmBtn) return;
 
+    // preload; button disabled with spinner until hints ready
+    hb.disabled = true
+    hb.classList.add('loading'); hb.textContent = '💡 Hint';
+    loadHints().then(()=>{ hb.disabled = false; hb.classList.remove('loading'); hb.textContent = '💡 Hint'; });
+
     function open(){ modal.classList.remove('hidden'); }
     function close(){ modal.classList.add('hidden'); }
 
-    hb.addEventListener('click', () => {
+    hb.addEventListener('click', async () => {
       if (used) { showToastSafe('Hint already used'); return; }
       try{ preRow = (typeof currentRow !== 'undefined') ? currentRow : null; }catch(e){ preRow = null; }
+      if (!hintsReady){ hb.disabled = true; hb.classList.add('loading'); await loadHints(); hb.disabled = false; hb.classList.remove('loading'); }
       open();
     });
 
-    cancelBtn.addEventListener('click', () => {
-      close();
-      // Ensure no side effects after cancel
-      if (!used) clearOneGuessUI();
-    });
-
+    cancelBtn.addEventListener('click', () => { close(); if (!used) clearOneGuessUI(); });
     const backdrop = qs('#hintModal .modal-backdrop');
-    if (backdrop){
-      backdrop.addEventListener('click', () => {
-        close();
-        if (!used) clearOneGuessUI();
-      });
-    }
+    if (backdrop){ backdrop.addEventListener('click', () => { close(); if (!used) clearOneGuessUI(); }); }
 
-    confirmBtn.addEventListener('click', () => {
+    confirmBtn.addEventListener('click', async () => {
       if (used) return;
+      if (!hintsReady){ hb.disabled = true; hb.classList.add('loading'); await loadHints(); hb.disabled = false; hb.classList.remove('loading'); }
       used = true;
       close();
       applyOneGuessUI();
@@ -110,17 +104,13 @@
       showToastSafe('Only 1 guess left!');
     });
 
-    // ESC should behave like Cancel for this modal
+    // ESC behaves like Cancel
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !modal.classList.contains('hidden')){
-        close();
-        if (!used) clearOneGuessUI();
+        close(); if (!used) clearOneGuessUI();
       }
     });
   }
 
-  document.addEventListener('DOMContentLoaded', function(){
-    loadHints().then(()=>{});
-    wireModal();
-  });
+  document.addEventListener('DOMContentLoaded', function(){ wireModal(); });
 })();

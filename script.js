@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v4.0.3';
+const APP_VERSION = 'v4.0.5';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -25,27 +25,24 @@ let currentRow = 0, currentCol = 0;
 const rows = [];
 
 (function loadWords(){
-  fetch('assets/fihr_food_words_v1.4.csv')
-    .then(r => r.text())
-    .then(text => {
-      const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-      const arr = [];
-      for (let i=0;i<lines.length;i++){
-        const parts = lines[i].split(',');
-        if (!parts.length) continue;
-        let word = (parts[0]||'').replace(/[^A-Za-z]/g,'').toUpperCase();
-        if (i===0 && word.toLowerCase()==='word') continue;
-        if (word.length===5) arr.push(word);
-      }
-      if (arr.length){ WORDS = arr; } else { throw new Error('No 5-letter words in CSV'); }
+  fetch('assets/fihr_food_words_v1.4.csv').then(r=>r.text()).then(text=>{
+    const lines = text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+    const arr = [];
+    for (let i=0;i<lines.length;i++){
+      const parts = lines[i].split(',');
+      if(!parts.length) continue;
+      let w = (parts[0]||'').replace(/[^A-Za-z]/g,'').toUpperCase();
+      if(i===0 && w.toLowerCase()==='word') continue;
+      if(w.length===5) arr.push(w);
+    }
+    if(arr.length){ WORDS = arr; } else { throw new Error('No 5-letter words parsed from CSV'); }
+    startGame();
+  }).catch(()=>{
+    return fetch('words.txt?v=v2.9?v=v2.7').then(r=>r.text()).then(txt=>{
+      WORDS = txt.split('\n').map(w => w.trim().toUpperCase()).filter(Boolean);
       startGame();
-    })
-    .catch(()=>{
-      return fetch('words.txt?v=v2.9?v=v2.7').then(r=>r.text()).then(txt=>{
-        WORDS = txt.split('\n').map(w => w.trim().toUpperCase()).filter(Boolean);
-        startGame();
-      });
     });
+  });
 })();
 
 function getDailyIndex(){
@@ -55,10 +52,10 @@ function getDailyIndex(){
   const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
   const istMs = utcMs + IST_OFFSET_MIN * 60000;
   const istShifted = new Date(istMs - CUTOFF_HOURS * 3600000);
-  const epochIST = Date.UTC(2023, 11, 31, 18, 30);
+  const epochIST = Date.UTC(2023,11,31,18,30);
   const days = Math.floor((istShifted.getTime() - epochIST) / 86400000);
   const n = Array.isArray(WORDS) ? WORDS.length : 1;
-  return n > 0 ? ((days % n) + n) % n : 0;
+  return n>0 ? ((days % n) + n) % n : 0;
 }
 
 function showToast(message) {

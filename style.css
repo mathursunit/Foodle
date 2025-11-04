@@ -173,12 +173,13 @@ h1 {
   white-space: normal;
 }
 
-/* Controls & Hint button */
+/* Controls & Hint */
 .controls{ display:flex; justify-content:flex-end; align-items:center; margin:.25rem 0 .25rem; }
-.hint-btn{ border:none; border-radius:6px; padding:.35rem .65rem; font-weight:700; cursor:pointer;
+.hint-btn{ position:relative; border:none; border-radius:6px; padding:.35rem .65rem; font-weight:700; cursor:pointer;
   background:#d3d6da; color:#111; box-shadow:0 3px 0 #b3b6b8; }
 .hint-btn:active{ transform:translateY(1px); box-shadow:0 2px 0 #b3b6b8; }
-.hint-text{ display:none; } /* no longer used as persistent line */ 
+.hint-btn[disabled]{ opacity:.6; cursor:progress; }
+.hint-text{ display:none; }
 .hint-label{
   margin:.15rem 0 .35rem;
   color:#6b7280;
@@ -189,8 +190,24 @@ h1 {
   border-radius:6px;
 }
 
+/* Spinner for Hint loading */
+.hint-btn.loading{ padding-right: 28px; }
+.hint-btn.loading::after{
+  content:"";
+  position:absolute;
+  right:8px;
+  top:50%;
+  width:14px;
+  height:14px;
+  margin-top:-7px;
+  border-radius:50%;
+  border:2px solid #9aa0a6;
+  border-top-color: transparent;
+  animation: hintspin .8s linear infinite;
+}
+@keyframes hintspin { to { transform: rotate(360deg); } }
 
-/* Modal (hint confirm) */
+/* Modal */
 .modal.hidden{ display:none; }
 .modal{ position:fixed; inset:0; z-index:9999; display:block; }
 .modal-backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.45); }
@@ -206,12 +223,10 @@ h1 {
 .btn-secondary{ background:#d3d6da; color:#111; box-shadow:0 3px 0 #b3b6b8; }
 .btn-secondary:active{ transform:translateY(1px); box-shadow:0 2px 0 #b3b6b8; }
 
-
-/* Cross-out rows when hint used */
+/* Crossed rows on hint */
 .row.crossed{ position:relative; opacity:.45; }
 .row.crossed::after{ content:""; position:absolute; left:0; right:0; top:50%; height:2px; background:#9aa0a6; transform:translateY(-50%); }
 .row.crossed .tile{ pointer-events:none; }
 
-
-/* Disable keyboard when game over */
+/* Disable keyboard on game over */
 #keyboard.disabled{ pointer-events:none; opacity:.6; filter:grayscale(0.1); }
