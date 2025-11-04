@@ -216,3 +216,10 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 .stats-actions .btn{ border:none; border-radius:8px; padding:.55rem .9rem; font-weight:700; cursor:pointer; }
 .stats-close{ background:#d3d6da; color:#111; }
 .stats-reset{ background:#ef4444; color:#fff; }
+
+
+/* v4.0.10 — Social icon bar */
+.social-bar{ display:flex; justify-content:center; gap:.6rem; margin:.4rem 0 .2rem; }
+.social-icon{ width:28px; height:28px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; background:#f3f4f6; }
+.social-icon:hover{ transform:translateY(-1px) scale(1.04); filter:brightness(.98); }
+.social-icon svg{ width:18px; height:18px; }
