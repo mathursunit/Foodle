@@ -1,7 +1,7 @@
-// hint-addon.js (v4.0.5) — spinner, race-free loading, cancel-safe, replace button with hint
+// hint-addon.js (v4.0.7) — spinner, race-free loading, cancel-safe, replace button with hint
 (function(){
-  function qs(s){ return document.querySelector(s); }
-  function qsa(s,root){ return Array.from((root||document).querySelectorAll(s)); }
+  const qs  = (s, r = document) => r.querySelector(s);
+  const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
 
   let used = false;
   let CURRENT_HINT = '';
@@ -20,23 +20,16 @@
         const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
         const hints = [];
         for (let i = 0; i < lines.length; i++){
-          let line = lines[i].replace(/^\ufeff/, '');
+          let line = lines[i].replace(/^\ufeff/, ''); // strip BOM
           const pos = line.indexOf(',');
           if (pos < 0) continue;
           let w = line.slice(0, pos).trim();
-          let h = line.slice(pos+1).trim();
+          let h = line.slice(pos + 1).trim();
           if (w.startsWith('"') && w.endsWith('"')) w = w.slice(1,-1);
           if (h.startsWith('"') && h.endsWith('"')) h = h.slice(1,-1);
-          w = w.replace(/[^A-Za-z]/g, '').toUpperCase();
-          if (i===0 && w.toLowerCase()==='word') continue;
-          if (w.length === 5){ hints.push(h); }
-        }
-        const idx = Math.min(getIndex(), hints.length - 1);
-        CURRENT_HINT = hints[idx] || '';
-      })
-      .catch(()=>{ CURRENT_HINT=''; })
-      .finally(()=>{ hintsReady = true; });
-  }
+          w = w.replace(/[^A-Za-z]/g,'').toUpperCase();
+          if (i === 0 && w.toLowerCase() === 'word') continue;
+          if (w.length === 5) hints.push(h);
         }
         const idx = Math.min(getIndex(), hints.length - 1);
         CURRENT_HINT = hints[idx] || '';
@@ -60,22 +53,21 @@
   }
 
   function clearOneGuessUI(){
-    const rows = qsa('#grid .row');
-    rows.forEach(r => r.classList.remove('crossed'));
+    qsa('#grid .row').forEach(r => r.classList.remove('crossed'));
     try{
       if (typeof preRow === 'number' && typeof currentRow !== 'undefined') currentRow = preRow;
       window.INPUT_LOCKED = false;
-      var kb = document.getElementById('keyboard'); if (kb) kb.classList.remove('disabled');
+      const kb = qs('#keyboard'); if (kb) kb.classList.remove('disabled');
     }catch(e){}
   }
 
   function replaceHintButtonWithLabel(){
     const hb = qs('#hintBtn');
     if (!hb) return;
-    const wrap = hb.parentElement && hb.parentElement.classList.contains('controls') ? hb.parentElement : hb;
+    const wrap = (hb.parentElement && hb.parentElement.classList.contains('controls')) ? hb.parentElement : hb;
     const label = document.createElement('div');
     label.className = 'hint-label';
-    label.textContent = CURRENT_HINT ? `Hint: ${CURRENT_HINT}` : 'Hint used';
+    label.textContent = CURRENT_HINT ? ('Hint: ' + CURRENT_HINT) : 'Hint used';
     if (wrap === hb) { hb.replaceWith(label); } else { wrap.replaceWith(label); }
   }
 
@@ -86,28 +78,27 @@
     const confirmBtn = qs('#hintConfirm');
     if (!hb || !modal || !cancelBtn || !confirmBtn) return;
 
-    // preload; button disabled with spinner until hints ready
-    hb.disabled = true
-    hb.classList.add('loading'); hb.textContent = '💡 Hint';
-    loadHints().then(()=>{ hb.disabled = false; hb.classList.remove('loading'); hb.textContent = '💡 Hint'; });
+    // Preload; keep button disabled with spinner until hints ready
+    hb.disabled = true; hb.classList.add('loading'); hb.textContent = '💡 Hint';
+    loadHints().then(()=>{ hb.disabled = false; hb.classList.remove('loading'); });
 
-    function open(){ modal.classList.remove('hidden'); }
-    function close(){ modal.classList.add('hidden'); }
+    const open  = () => modal.classList.remove('hidden');
+    const close = () => modal.classList.add('hidden');
 
     hb.addEventListener('click', async () => {
       if (used) { showToastSafe('Hint already used'); return; }
-      try{ preRow = (typeof currentRow !== 'undefined') ? currentRow : null; }catch(e){ preRow = null; }
-      if (!hintsReady){ hb.disabled = true; hb.classList.add('loading'); await loadHints(); hb.disabled = false; hb.classList.remove('loading'); }
+      try { preRow = (typeof currentRow !== 'undefined') ? currentRow : null; } catch { preRow = null; }
+      if (!hintsReady) { hb.disabled = true; hb.classList.add('loading'); await loadHints(); hb.disabled = false; hb.classList.remove('loading'); }
       open();
     });
 
     cancelBtn.addEventListener('click', () => { close(); if (!used) clearOneGuessUI(); });
     const backdrop = qs('#hintModal .modal-backdrop');
-    if (backdrop){ backdrop.addEventListener('click', () => { close(); if (!used) clearOneGuessUI(); }); }
+    if (backdrop) backdrop.addEventListener('click', () => { close(); if (!used) clearOneGuessUI(); });
 
     confirmBtn.addEventListener('click', async () => {
       if (used) return;
-      if (!hintsReady){ hb.disabled = true; hb.classList.add('loading'); await loadHints(); hb.disabled = false; hb.classList.remove('loading'); }
+      if (!hintsReady) { hb.disabled = true; hb.classList.add('loading'); await loadHints(); hb.disabled = false; hb.classList.remove('loading'); }
       used = true;
       close();
       applyOneGuessUI();
@@ -117,11 +108,11 @@
 
     // ESC behaves like Cancel
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !modal.classList.contains('hidden')){
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
         close(); if (!used) clearOneGuessUI();
       }
     });
   }
 
-  document.addEventListener('DOMContentLoaded', function(){ wireModal(); });
+  document.addEventListener('DOMContentLoaded', () => { wireModal(); });
 })();

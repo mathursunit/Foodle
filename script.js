@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v4.0.6';
+const APP_VERSION = 'v4.0.7';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -24,40 +24,28 @@ let solution = '';
 let currentRow = 0, currentCol = 0;
 const rows = [];
 
-(function loadWords(){
-  fetch('assets/fihr_food_words_v1.4.csv').then(r=>r.text()).then(text=>{
-    const lines = text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-  const arr = [];
-  for (let i=0;i<lines.length;i++){
-    let line = lines[i].replace(/^\ufeff/, '');
-    const idx = line.indexOf(',');
-    let word = (idx>=0 ? line.slice(0, idx) : line).trim();
-    if (word.startsWith('"') && word.endsWith('"')) word = word.slice(1,-1);
-    word = word.replace(/[^A-Za-z]/g,'').toUpperCase();
-    if (i===0 && word.toLowerCase()==='word') continue;
-    if (word.length===5) arr.push(word);
-  }
-  if(arr.length){ WORDS = arr; } else { throw new Error('No 5-letter words parsed from CSV'); }
-  startGame();
-  }).catch(()=>{
-    return fetch('words.txt?v=v2.9?v=v2.7').then(r=>r.text()).then(txt=>{
-      WORDS = txt.split('\n').map(w => w.trim().toUpperCase()).filter(Boolean);
-      startGame();
-    });
-  });
-})();
+fetch('assets/fihr_food_words_v1.4.csv')
+  .then(r => r.text())
+  .then(txt => {
+    const lines = txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+    WORDS = [];
+    for (let i=0;i<lines.length;i++){
+      let line = lines[i].replace(/^\ufeff/, '');
+      const idx = line.indexOf(',');
+      let word = (idx>=0 ? line.slice(0, idx) : line).trim();
+      if (word.startsWith('"') && word.endsWith('"')) word = word.slice(1,-1);
+      word = word.replace(/[^A-Za-z]/g,'').toUpperCase();
+      if (i===0 && word.toLowerCase()==='word') continue;
+      if (word.length===5) WORDS.push(word);
+    }
+    startGame();
+  }).catch(()=>{ WORDS=['APPLE','MANGO','BERRY','PIZZA','ALONE','PASTA','BREAD','SALAD','GRAPE','CHILI']; startGame(); });
 
-function getDailyIndex(){
-  const IST_OFFSET_MIN = 330;
-  const CUTOFF_HOURS = 8;
+function getDailyIndex() {
   const now = new Date();
-  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
-  const istMs = utcMs + IST_OFFSET_MIN * 60000;
-  const istShifted = new Date(istMs - CUTOFF_HOURS * 3600000);
-  const epochIST = Date.UTC(2023,11,31,18,30);
-  const days = Math.floor((istShifted.getTime() - epochIST) / 86400000);
-  const n = Array.isArray(WORDS) ? WORDS.length : 1;
-  return n>0 ? ((days % n) + n) % n : 0;
+  const todayUTCmid = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const days = Math.floor((todayUTCmid - EPOCH_MS) / MS_PER_DAY);
+  return ((days % WORDS.length) + WORDS.length) % WORDS.length;
 }
 
 function showToast(message) {
