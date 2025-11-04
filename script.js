@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v4.0.1';
+const APP_VERSION = 'v4.0.3';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -25,7 +25,6 @@ let currentRow = 0, currentCol = 0;
 const rows = [];
 
 (function loadWords(){
-  // Try CSV first; fallback to words.txt if not available
   fetch('assets/fihr_food_words_v1.4.csv')
     .then(r => r.text())
     .then(text => {
@@ -34,30 +33,32 @@ const rows = [];
       for (let i=0;i<lines.length;i++){
         const parts = lines[i].split(',');
         if (!parts.length) continue;
-        let w = (parts[0]||'').replace(/[^A-Za-z]/g,'').toUpperCase();
-        if (i===0 && w.toLowerCase()==='word') continue;
-        if (w.length === 5) arr.push(w);
+        let word = (parts[0]||'').replace(/[^A-Za-z]/g,'').toUpperCase();
+        if (i===0 && word.toLowerCase()==='word') continue;
+        if (word.length===5) arr.push(word);
       }
-      if (arr.length) {
-        WORDS = arr;
-      } else {
-        throw new Error('No 5-letter words parsed from CSV');
-      }
+      if (arr.length){ WORDS = arr; } else { throw new Error('No 5-letter words in CSV'); }
       startGame();
     })
-    .catch(() => {
-      return fetch('words.txt?v=v2.9?v=v2.7').then(r => r.text()).then(txt => {
+    .catch(()=>{
+      return fetch('words.txt?v=v2.9?v=v2.7').then(r=>r.text()).then(txt=>{
         WORDS = txt.split('\n').map(w => w.trim().toUpperCase()).filter(Boolean);
         startGame();
       });
     });
 })();
 
-function getDailyIndex() {
+function getDailyIndex(){
+  const IST_OFFSET_MIN = 330;
+  const CUTOFF_HOURS = 8;
   const now = new Date();
-  const todayUTCmid = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-  const days = Math.floor((todayUTCmid - EPOCH_MS) / MS_PER_DAY);
-  return ((days % WORDS.length) + WORDS.length) % WORDS.length;
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const istMs = utcMs + IST_OFFSET_MIN * 60000;
+  const istShifted = new Date(istMs - CUTOFF_HOURS * 3600000);
+  const epochIST = Date.UTC(2023, 11, 31, 18, 30);
+  const days = Math.floor((istShifted.getTime() - epochIST) / 86400000);
+  const n = Array.isArray(WORDS) ? WORDS.length : 1;
+  return n > 0 ? ((days % n) + n) % n : 0;
 }
 
 function showToast(message) {
@@ -97,18 +98,6 @@ function startGame() {
       onKey({ key: k });
     });
   });
-  // Hint rule: if a button with id="hintBtn" exists, using it leaves only one remaining guess
-  (function(){
-    const hb = document.getElementById('hintBtn');
-    if(!hb) return;
-    let used = false;
-    hb.addEventListener('click', () => {
-      if(used) return;
-      used = true;
-      if (currentRow < 4) currentRow = 4;
-      try{ showToast('Only 1 guess left!'); }catch(e){}
-    });
-  })();
 }
 
 function onKey(e) {
@@ -192,15 +181,14 @@ function checkGuess() {
 
   // After animations
   setTimeout(() => {
-    if (guess === solution) { try{ window.INPUT_LOCKED = true; var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled'); }catch(e){} try{ if (typeof showToast==='function'){ showToast('Game Over - You Rock!'); } }catch(e){} try{ window.INPUT_LOCKED = true; var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled'); }catch(e){}
+    if (guess === solution) { try{ window.INPUT_LOCKED = true; var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled'); }catch(e){} try{ if (typeof showToast==='function'){ showToast('Game Over - You Rock!'); } }catch(e){}
       showToast('Great');
     if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 60 });
       currentRow = 5;
     } else {
       currentRow++;
       try{
-        var rowsTotal = 5; // v3.1 layout uses 5 rows
-        if (typeof MAX_ROWS !== 'undefined') rowsTotal = MAX_ROWS;
+        var rowsTotal = 5; if (typeof MAX_ROWS !== 'undefined') rowsTotal = MAX_ROWS;
         if (currentRow >= rowsTotal && guess !== solution) {
           window.INPUT_LOCKED = true; var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled');
           if (typeof showToast==='function'){ showToast('Game Over - Better luck tomorrow'); }

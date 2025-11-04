@@ -1,53 +1,74 @@
-// hint-addon.js (v3.7.17) — CSV hint support + modal + cross rows + one guess rule
+// hint-addon.js (v4.0.3) — cancel-safe: no UI changes on cancel; cleanup on ESC
 (function(){
   function qs(s){ return document.querySelector(s); }
-  function qsa(s){ return Array.from(document.querySelectorAll(s)); }
+  function qsa(s,root){ return Array.from((root||document).querySelectorAll(s)); }
 
   let used = false;
   let CURRENT_HINT = '';
+  let preRow = null; // remember cursor row before opening modal
 
-  // Determine today's index using existing function if present
   function getIndex(){
     try{ if (typeof getDailyIndex === 'function') return getDailyIndex(); }catch(e){}
     return 0;
   }
 
-  // Fetch hints from CSV (second column)
   function loadHints(){
     return fetch('assets/fihr_food_words_v1.4.csv')
       .then(r => r.text())
       .then(text => {
-        const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        const lines = text.split(/\\r?\\n/).map(s => s.trim()).filter(Boolean);
         const hints = [];
-        const words = [];
-        for(let i=0;i<lines.length;i++){
+        for (let i = 0; i < lines.length; i++){
           const parts = lines[i].split(',');
-          if(!parts.length) continue;
-          let w = (parts[0]||'').replace(/[^A-Za-z]/g,'').toUpperCase();
-          let h = (parts[1]||'').trim();
-          if(i===0 && w.toLowerCase()==='word') continue;
-          if(w.length===5){ words.push(w); hints.push(h); }
+          if (!parts.length) continue;
+          let w = (parts[0] || '').replace(/[^A-Za-z]/g, '').toUpperCase();
+          let h = (parts[1] || '').trim();
+          if (i===0 && w.toLowerCase()==='word') continue;
+          if (w.length === 5){ hints.push(h); }
         }
-        const idx = Math.min(getIndex(), hints.length-1);
+        const idx = Math.min(getIndex(), hints.length - 1);
         CURRENT_HINT = hints[idx] || '';
       })
       .catch(()=>{ CURRENT_HINT=''; });
   }
 
   function showToastSafe(msg){
-    try{ if(typeof showToast==='function'){ showToast(msg); } }catch(e){}
+    try{ if (typeof showToast === 'function') showToast(msg); } catch(e){}
   }
 
   function applyOneGuessUI(){
     const rows = qsa('#grid .row');
-    if(rows.length === 0) return;
-    for(let i=0;i<rows.length-1;i++){
+    if (!rows.length) return;
+    for (let i = 0; i < rows.length - 1; i++) {
       rows[i].classList.add('crossed');
-      // Clear letters (but preserve placeholder content via data attributes if any)
-      qsa('.tile', rows[i]).forEach(t => { try { t.textContent=''; } catch(e){} });
+      qsa('.tile', rows[i]).forEach(t => { try { t.textContent = ''; } catch(e){} });
     }
-    // Move to last row (assumes global currentRow exists)
-    try{ if (typeof currentRow !== 'undefined') currentRow = Math.max(0, rows.length-1); }catch(e){}
+    try { if (typeof currentRow !== 'undefined') currentRow = Math.max(0, rows.length - 1); } catch(e){}
+  }
+
+  function clearOneGuessUI(){
+    // Remove any accidental crosses, re-enable keyboard, reset cursor
+    const rows = qsa('#grid .row');
+    rows.forEach(r => r.classList.remove('crossed'));
+    try{
+      if (typeof preRow === 'number' && typeof currentRow !== 'undefined') currentRow = preRow;
+      window.INPUT_LOCKED = false;
+      var kb = document.getElementById('keyboard'); if (kb) kb.classList.remove('disabled');
+    }catch(e){}
+  }
+
+  function replaceHintButtonWithLabel(){
+    const hb = qs('#hintBtn');
+    if (!hb) return;
+    const wrap = hb.parentElement && hb.parentElement.classList.contains('controls') ? hb.parentElement : hb;
+    const label = document.createElement('div');
+    label.className = 'hint-label';
+    label.textContent = CURRENT_HINT ? `Hint: ${CURRENT_HINT}` : 'Hint used';
+    if (wrap === hb) {
+      hb.replaceWith(label);
+    } else {
+      wrap.replaceWith(label);
+    }
   }
 
   function wireModal(){
@@ -55,44 +76,51 @@
     const modal = qs('#hintModal');
     const cancelBtn = qs('#hintCancel');
     const confirmBtn = qs('#hintConfirm');
-    if(!hb || !modal || !cancelBtn || !confirmBtn) return;
+    if (!hb || !modal || !cancelBtn || !confirmBtn) return;
 
     function open(){ modal.classList.remove('hidden'); }
     function close(){ modal.classList.add('hidden'); }
 
     hb.addEventListener('click', () => {
-      if(used){ showToastSafe('Hint already used'); return; }
+      if (used) { showToastSafe('Hint already used'); return; }
+      try{ preRow = (typeof currentRow !== 'undefined') ? currentRow : null; }catch(e){ preRow = null; }
       open();
     });
-    cancelBtn.addEventListener('click', close);
-    qs('#hintModal .modal-backdrop').addEventListener('click', close);
+
+    cancelBtn.addEventListener('click', () => {
+      close();
+      // Ensure no side effects after cancel
+      if (!used) clearOneGuessUI();
+    });
+
+    const backdrop = qs('#hintModal .modal-backdrop');
+    if (backdrop){
+      backdrop.addEventListener('click', () => {
+        close();
+        if (!used) clearOneGuessUI();
+      });
+    }
+
     confirmBtn.addEventListener('click', () => {
-      if(used) return;
+      if (used) return;
       used = true;
       close();
       applyOneGuessUI();
-      if(CURRENT_HINT){
-        showToastSafe(('Hint: '+CURRENT_HINT).toUpperCase());
-        const ht = qs('#hintText'); if(ht) ht.textContent = 'Hint: '+CURRENT_HINT;
-      }
+      replaceHintButtonWithLabel();
       showToastSafe('Only 1 guess left!');
+    });
+
+    // ESC should behave like Cancel for this modal
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')){
+        close();
+        if (!used) clearOneGuessUI();
+      }
     });
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    // load hints in parallel; doesn't block game init
     loadHints().then(()=>{});
     wireModal();
-  });
-})();
-
-/* v4.0: global ESC closes any modal */
-(function(){
-  function closeAllModals(){
-    var ms = document.querySelectorAll('.modal');
-    ms.forEach(m => m.classList.add('hidden'));
-  }
-  window.addEventListener('keydown', function(e){
-    if(e.key === 'Escape'){ closeAllModals(); }
   });
 })();
