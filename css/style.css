@@ -260,3 +260,8 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 #grid.disabled-grid{ pointer-events:none; opacity:.92; filter:grayscale(.02); }
 #keyboard.disabled{ opacity:.85; filter:none; }
 canvas{ background-color: transparent !important; pointer-events:none !important; }
+
+
+/* v4.1.2 — No dimming after game over */
+#grid.disabled-grid{ pointer-events:none; opacity:1 !important; filter:none !important; }
+#keyboard.disabled{ opacity:1 !important; filter:none !important; }
