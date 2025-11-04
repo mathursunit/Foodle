@@ -272,3 +272,9 @@ h1 {
 .about-follow .follow-label{ color:#6b7280; font-weight:700; }
 .about-follow .social-icon{ width:84px; height:84px; border-radius:16px; display:inline-flex; align-items:center; justify-content:center; background:#f3f4f6; }
 .about-follow .social-icon svg{ width:72px; height:72px; }
+
+
+/* v4.1 — Disable grid state & About modal centering */
+#grid.disabled-grid{ pointer-events:none; opacity:.55; filter:grayscale(.1); }
+#aboutModal .modal-box, #about-modal .modal-box{ text-align:center; }
+#aboutModal .about-follow, #about-modal .about-follow{ justify-content:center; }

@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v4.0.14';
+const APP_VERSION = 'v4.1';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -168,7 +168,13 @@ function checkGuess() {
 
   // After animations
   setTimeout(() => {
-    if (guess === solution) { try{ window.INPUT_LOCKED = true; var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled'); }catch(e){} try{ if (typeof showToast==='function'){ showToast('Game Over - You Rock!'); } }catch(e){} try{ if (window.recordGame) window.recordGame('win', (typeof currentRow!=='undefined'? currentRow+1 : 0), !!window.HINT_USED); }catch(e){}
+    if (guess === solution) { 
+try{
+  window.INPUT_LOCKED = true;
+  var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled');
+  var grid=document.getElementById('grid'); if(grid) grid.classList.add('disabled-grid');
+  var hb=document.getElementById('hintBtn'); if(hb){ hb.disabled=true; hb.classList.add('loading'); hb.classList.remove('loading'); }
+}catch(e){} try{ if (typeof showToast==='function'){ showToast('Game Over - You Rock!'); } }catch(e){} try{ if (window.recordGame) window.recordGame('win', (typeof currentRow!=='undefined'? currentRow+1 : 0), !!window.HINT_USED); }catch(e){}
       showToast('Great');
     if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 60 });
       currentRow = 5;
@@ -178,7 +184,13 @@ function checkGuess() {
         var rowsTotal = 5; if (typeof MAX_ROWS !== 'undefined') rowsTotal = MAX_ROWS;
         if (currentRow >= rowsTotal && guess !== solution) {
           window.INPUT_LOCKED = true; var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled');
-          if (typeof showToast==='function'){ showToast('Game Over - Better luck tomorrow'); } try{ var _max=(typeof MAX_ROWS!=='undefined'? MAX_ROWS:5); if (window.recordGame) window.recordGame('loss', _max, !!window.HINT_USED); }catch(e){}
+          if (typeof showToast==='function'){ showToast('Game Over - Better luck tomorrow'); } 
+try{
+  window.INPUT_LOCKED = true;
+  var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled');
+  var grid=document.getElementById('grid'); if(grid) grid.classList.add('disabled-grid');
+  var hb=document.getElementById('hintBtn'); if(hb){ hb.disabled=true; hb.classList.add('loading'); hb.classList.remove('loading'); }
+}catch(e){} try{ var _max=(typeof MAX_ROWS!=='undefined'? MAX_ROWS:5); if (window.recordGame) window.recordGame('loss', _max, !!window.HINT_USED); }catch(e){}
         }
       }catch(e){}
 
