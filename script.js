@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v4.0.5';
+const APP_VERSION = 'v4.0.6';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -27,16 +27,18 @@ const rows = [];
 (function loadWords(){
   fetch('assets/fihr_food_words_v1.4.csv').then(r=>r.text()).then(text=>{
     const lines = text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-    const arr = [];
-    for (let i=0;i<lines.length;i++){
-      const parts = lines[i].split(',');
-      if(!parts.length) continue;
-      let w = (parts[0]||'').replace(/[^A-Za-z]/g,'').toUpperCase();
-      if(i===0 && w.toLowerCase()==='word') continue;
-      if(w.length===5) arr.push(w);
-    }
-    if(arr.length){ WORDS = arr; } else { throw new Error('No 5-letter words parsed from CSV'); }
-    startGame();
+  const arr = [];
+  for (let i=0;i<lines.length;i++){
+    let line = lines[i].replace(/^\ufeff/, '');
+    const idx = line.indexOf(',');
+    let word = (idx>=0 ? line.slice(0, idx) : line).trim();
+    if (word.startsWith('"') && word.endsWith('"')) word = word.slice(1,-1);
+    word = word.replace(/[^A-Za-z]/g,'').toUpperCase();
+    if (i===0 && word.toLowerCase()==='word') continue;
+    if (word.length===5) arr.push(word);
+  }
+  if(arr.length){ WORDS = arr; } else { throw new Error('No 5-letter words parsed from CSV'); }
+  startGame();
   }).catch(()=>{
     return fetch('words.txt?v=v2.9?v=v2.7').then(r=>r.text()).then(txt=>{
       WORDS = txt.split('\n').map(w => w.trim().toUpperCase()).filter(Boolean);

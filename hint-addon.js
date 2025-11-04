@@ -17,15 +17,26 @@
     return fetch('assets/fihr_food_words_v1.4.csv', {cache:'no-store'})
       .then(r => r.text())
       .then(text => {
-        const lines = text.split(/\\r?\\n/).map(s => s.trim()).filter(Boolean);
+        const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
         const hints = [];
         for (let i = 0; i < lines.length; i++){
-          const parts = lines[i].split(',');
-          if (!parts.length) continue;
-          let w = (parts[0] || '').replace(/[^A-Za-z]/g, '').toUpperCase();
-          let h = (parts[1] || '').trim();
+          let line = lines[i].replace(/^\ufeff/, '');
+          const pos = line.indexOf(',');
+          if (pos < 0) continue;
+          let w = line.slice(0, pos).trim();
+          let h = line.slice(pos+1).trim();
+          if (w.startsWith('"') && w.endsWith('"')) w = w.slice(1,-1);
+          if (h.startsWith('"') && h.endsWith('"')) h = h.slice(1,-1);
+          w = w.replace(/[^A-Za-z]/g, '').toUpperCase();
           if (i===0 && w.toLowerCase()==='word') continue;
           if (w.length === 5){ hints.push(h); }
+        }
+        const idx = Math.min(getIndex(), hints.length - 1);
+        CURRENT_HINT = hints[idx] || '';
+      })
+      .catch(()=>{ CURRENT_HINT=''; })
+      .finally(()=>{ hintsReady = true; });
+  }
         }
         const idx = Math.min(getIndex(), hints.length - 1);
         CURRENT_HINT = hints[idx] || '';
