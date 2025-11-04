@@ -223,3 +223,9 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 .social-icon{ width:28px; height:28px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; background:#f3f4f6; }
 .social-icon:hover{ transform:translateY(-1px) scale(1.04); filter:brightness(.98); }
 .social-icon svg{ width:18px; height:18px; }
+
+
+/* v4.0.11 — About modal social row & hint-under-grid */
+.about-follow{ display:flex; align-items:center; gap:.6rem; margin-top:.6rem; flex-wrap:wrap; }
+.about-follow .follow-label{ color:#6b7280; font-weight:700; }
+.hint-under-grid{ display:flex; justify-content:center; margin:.4rem 0; }
