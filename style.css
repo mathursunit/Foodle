@@ -258,3 +258,17 @@ h1 {
 /* v4.0.12 — under-grid controls row (Hint + Stats + About) */
 .hint-under-grid{ display:flex; justify-content:center; gap:.5rem; margin:.4rem 0; flex-wrap:wrap; }
 .hint-under-grid .btn-ghost, .hint-under-grid .hint-btn{ margin:0; }
+
+
+/* v4.0.13 — icon-only buttons under grid */
+.icon-btn{ width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center;
+  border:none; border-radius:10px; background:#e5e7eb; cursor:pointer; font-size:22px; }
+.icon-btn:hover{ transform:translateY(-1px) scale(1.04); filter:brightness(.98); }
+.icon-btn:active{ transform:translateY(0); }
+.hint-under-grid{ gap:.5rem; }
+
+/* v4.0.13 — About socials 4x size */
+.about-follow{ display:flex; align-items:center; gap:.8rem; margin-top:.8rem; flex-wrap:wrap; }
+.about-follow .follow-label{ color:#6b7280; font-weight:700; }
+.about-follow .social-icon{ width:84px; height:84px; border-radius:16px; display:inline-flex; align-items:center; justify-content:center; background:#f3f4f6; }
+.about-follow .social-icon svg{ width:72px; height:72px; }
