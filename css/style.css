@@ -229,3 +229,8 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 .about-follow{ display:flex; align-items:center; gap:.6rem; margin-top:.6rem; flex-wrap:wrap; }
 .about-follow .follow-label{ color:#6b7280; font-weight:700; }
 .hint-under-grid{ display:flex; justify-content:center; margin:.4rem 0; }
+
+
+/* v4.0.12 — under-grid controls row (Hint + Stats + About) */
+.hint-under-grid{ display:flex; justify-content:center; gap:.5rem; margin:.4rem 0; flex-wrap:wrap; }
+.hint-under-grid .btn-ghost, .hint-under-grid .hint-btn{ margin:0; }
