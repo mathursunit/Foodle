@@ -1,5 +1,5 @@
 // script.js with toast notification and flip animation
-const APP_VERSION = 'v4.1';
+const APP_VERSION = 'v4.1.1';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const EPOCH_MS = Date.UTC(2025, 0, 1);
@@ -184,7 +184,7 @@ try{
         var rowsTotal = 5; if (typeof MAX_ROWS !== 'undefined') rowsTotal = MAX_ROWS;
         if (currentRow >= rowsTotal && guess !== solution) {
           window.INPUT_LOCKED = true; var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled');
-          if (typeof showToast==='function'){ showToast('Game Over - Better luck tomorrow'); } 
+          if (typeof showToast==='function'){ showToast('Game Over - Better luck tomorrow'); } try{ window.dispatchEvent(new CustomEvent('fihr:gameover',{detail:{outcome:'loss'}})); }catch(e){} 
 try{
   window.INPUT_LOCKED = true;
   var kb=document.getElementById('keyboard'); if(kb) kb.classList.add('disabled');

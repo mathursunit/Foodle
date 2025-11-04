@@ -254,3 +254,9 @@ footer{margin:6px 0 12px 0;color:#666;text-align:center}
 #grid.disabled-grid{ pointer-events:none; opacity:.55; filter:grayscale(.1); }
 #aboutModal .modal-box, #about-modal .modal-box{ text-align:center; }
 #aboutModal .about-follow, #about-modal .about-follow{ justify-content:center; }
+
+
+/* v4.1.1 — Softer disabled visuals + safe confetti canvas */
+#grid.disabled-grid{ pointer-events:none; opacity:.92; filter:grayscale(.02); }
+#keyboard.disabled{ opacity:.85; filter:none; }
+canvas{ background-color: transparent !important; pointer-events:none !important; }
