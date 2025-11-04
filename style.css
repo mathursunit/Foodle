@@ -199,3 +199,44 @@ h1 {
 .row.crossed::after{ content:""; position:absolute; left:0; right:0; top:50%; height:2px; background:#9aa0a6; transform:translateY(-50%); }
 .row.crossed .tile{ pointer-events:none; }
 #keyboard.disabled{ pointer-events:none; opacity:.6; filter:grayscale(.1); }
+
+
+/* v4.0.9 — Colorful crossed rows */
+.row.crossed .tile{ position:relative; }
+.row.crossed .tile::after{
+  content:"";
+  position:absolute; inset:0;
+  border-radius:8px;
+  background: repeating-linear-gradient(-45deg,
+      rgba(255,92,92,.18) 0 10px,
+      rgba(255,186,73,.18) 10px 20px,
+      rgba(255,246,117,.18) 20px 30px,
+      rgba(102,210,105,.18) 30px 40px,
+      rgba(98,179,255,.18) 40px 50px,
+      rgba(171,148,255,.18) 50px 60px);
+  animation: crossedSlide 1.4s linear infinite;
+}
+@keyframes crossedSlide { to { background-position: 60px 0; } }
+
+/* v4.0.9 — Header buttons */
+.controls{ gap:.4rem; }
+.btn-ghost{ border:none; border-radius:6px; padding:.35rem .6rem; font-weight:700; cursor:pointer; background:#e5e7eb; color:#111; }
+.btn-ghost:active{ transform:translateY(1px); }
+.btn-ghost:hover{ filter:brightness(.97); }
+
+/* v4.0.9 — Stats modal */
+#statsModal.hidden{ display:none; }
+#statsModal{ position:fixed; inset:0; z-index:9999; }
+#statsModal .modal-backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.45); }
+#statsModal .modal-box{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  background:#fff; color:#111; border-radius:12px; width:min(92vw,540px); padding:1rem 1.2rem;
+  box-shadow:0 22px 60px rgba(0,0,0,.25);
+}
+.stats-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:.6rem; margin:.6rem 0 0; }
+.stats-card{ background:#f3f4f6; border-radius:10px; padding:.7rem .8rem; text-align:center; }
+.stats-card .label{ font-size:.78rem; color:#6b7280; }
+.stats-card .value{ font-size:1.3rem; font-weight:800; margin-top:.25rem; }
+.stats-actions{ margin-top:.8rem; display:flex; justify-content:flex-end; gap:.5rem; }
+.stats-actions .btn{ border:none; border-radius:8px; padding:.55rem .9rem; font-weight:700; cursor:pointer; }
+.stats-close{ background:#d3d6da; color:#111; }
+.stats-reset{ background:#ef4444; color:#fff; }
